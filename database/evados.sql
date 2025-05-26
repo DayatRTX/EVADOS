@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 26, 2025 at 08:05 PM
+-- Generation Time: May 26, 2025 at 08:15 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -133,13 +133,6 @@ CREATE TABLE `evaluations` (
   `comment` text DEFAULT NULL,
   `evaluation_date` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `evaluations`
---
-
-INSERT INTO `evaluations` (`evaluation_id`, `student_user_id`, `lecturer_user_id`, `q1_score`, `q2_score`, `q3_score`, `q4_score`, `q5_score`, `q6_score`, `q7_score`, `q8_score`, `q9_score`, `q10_score`, `q11_score`, `q12_score`, `qb1_score`, `qb2_score`, `qb3_score`, `qb4_score`, `qb5_score`, `qc1_score`, `qc2_score`, `qc3_score`, `submission_average`, `comment`, `evaluation_date`) VALUES
-(1, 1, 5, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4.00, 'wow', '2025-05-26 06:35:11');
 
 -- --------------------------------------------------------
 
@@ -283,13 +276,6 @@ CREATE TABLE `messages` (
   `read_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `messages`
---
-
-INSERT INTO `messages` (`message_id`, `sender_user_id`, `receiver_user_id`, `message_type`, `subject`, `content`, `sent_at`, `is_read`, `read_at`) VALUES
-(1, 6, 5, 'pesan', 'a', 'b', '2025-05-26 06:38:00', 1, '2025-05-26 06:38:33');
-
 -- --------------------------------------------------------
 
 --
@@ -394,7 +380,7 @@ ALTER TABLE `auth_users`
 -- AUTO_INCREMENT for table `evaluations`
 --
 ALTER TABLE `evaluations`
-  MODIFY `evaluation_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `evaluation_id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `jadwal_mengajar`
@@ -412,7 +398,7 @@ ALTER TABLE `mata_kuliah`
 -- AUTO_INCREMENT for table `messages`
 --
 ALTER TABLE `messages`
-  MODIFY `message_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `message_id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- Constraints for dumped tables
