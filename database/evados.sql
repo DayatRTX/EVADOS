@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 26, 2025 at 07:27 PM
+-- Generation Time: May 26, 2025 at 08:05 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -42,7 +42,7 @@ CREATE TABLE `auth_users` (
 --
 
 INSERT INTO `auth_users` (`user_id`, `username`, `email`, `password_hash`, `role`, `full_name`, `is_active`) VALUES
-(1, 'k4mic2023', 'k4mic2023@gmail.com', '$2y$10$fqlGaD814WW06fh6ZhTRWe/gRFKz/MZdc8n5rMdAL6vK9ljti6vX2', 'mahasiswa', 'Wahyu Wahid Nugroho', 1),
+(1, 'k4mic2023', 'k4mic2023@gmail.com', '$2y$10$S0qjooIzpgIuc.YiM3vP4.ovhpGBk9VtT2bkknqvjfOlQSr8XtxAq', 'mahasiswa', 'Wahyu Wahid Nugroho', 1),
 (2, 'k4mid2023', 'k4mid2023@gmail.com', '$2y$10$S0qjooIzpgIuc.YiM3vP4.ovhpGBk9VtT2bkknqvjfOlQSr8XtxAq', 'mahasiswa', 'Fakhri Irawan', 1),
 (3, NULL, 'dosen.A@example.com', '$2y$10$S0qjooIzpgIuc.YiM3vP4.ovhpGBk9VtT2bkknqvjfOlQSr8XtxAq', 'dosen', 'Nurlaili Rahmi, M.Si.', 1),
 (4, NULL, 'dosen.B@example.com', '$2y$10$S0qjooIzpgIuc.YiM3vP4.ovhpGBk9VtT2bkknqvjfOlQSr8XtxAq', 'dosen', 'Kurniati, M.Kom.', 1),
