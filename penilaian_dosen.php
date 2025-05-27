@@ -376,7 +376,8 @@ $js_initial_sidebar_force_closed_penilaian = 'false';
       <header class="header">
         <h1>Formulir Penilaian Dosen: <?php echo htmlspecialchars($lecturer_name); ?></h1>
         <p style="margin-top: 5px; font-size: 0.9em;">Periode Penilaian:
-          <?php echo htmlspecialchars($semester_evaluasi_aktif_form); ?></p>
+          <?php echo htmlspecialchars($semester_evaluasi_aktif_form); ?>
+        </p>
       </header>
 
       <section class="content-card penilaian-container">
