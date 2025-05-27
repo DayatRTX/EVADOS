@@ -10,11 +10,11 @@ if (isset($_SESSION['initial_dashboard_load_sidebar_closed']) && $_SESSION['init
     unset($_SESSION['initial_dashboard_load_sidebar_closed']);
 }
 
-require_once 'includes/auth_check_kajur.php'; //
-require_once 'config/db.php'; //
+require_once 'includes/auth_check_kajur.php';
+require_once 'config/db.php';
 
 $department_managed = '';
-$stmt_dept = $conn->prepare("SELECT department_managed FROM Kajur WHERE user_id = ?"); //
+$stmt_dept = $conn->prepare("SELECT department_managed FROM Kajur WHERE user_id = ?");
 if ($stmt_dept) {
     $stmt_dept->bind_param("i", $loggedInKajurId);
     $stmt_dept->execute();
@@ -31,18 +31,60 @@ if ($stmt_dept) {
     $department_managed = "Error Mengambil Data Departemen";
 }
 
-$periode_evaluasi_display = "Semua Periode";
+// --- Pengambilan data untuk filter periode ---
+$available_periods_kajur = [];
+if (!empty($department_managed) && $department_managed !== "Departemen Tidak Terdefinisi" && $department_managed !== "Error Mengambil Data Departemen") {
+    $stmt_periods_kajur = $conn->prepare(
+        "SELECT DISTINCT e.semester_evaluasi, e.tahun_ajaran_evaluasi
+         FROM Evaluations e
+         JOIN Auth_Users au_lecturer ON e.lecturer_user_id = au_lecturer.user_id
+         JOIN Dosen d ON au_lecturer.user_id = d.user_id
+         WHERE d.department = ?
+         ORDER BY e.tahun_ajaran_evaluasi DESC, e.semester_evaluasi DESC"
+    );
+    if ($stmt_periods_kajur) {
+        $stmt_periods_kajur->bind_param("s", $department_managed);
+        $stmt_periods_kajur->execute();
+        $result_periods_kajur = $stmt_periods_kajur->get_result();
+        while ($row_period_kajur = $result_periods_kajur->fetch_assoc()) {
+            $available_periods_kajur[] = $row_period_kajur;
+        }
+        $stmt_periods_kajur->close();
+    } else {
+        error_log("Gagal mengambil periode tersedia (kajur_dashboard): " . $conn->error);
+    }
+}
+
+// --- Logika Filter Periode ---
+$selected_semester_filter_kajur = $_GET['semester_filter'] ?? 'semua';
+$selected_tahun_ajaran_filter_kajur = $_GET['tahun_ajaran_filter'] ?? 'semua';
+
+$periode_evaluasi_display_kajur = "Semua Periode";
+$sql_condition_periode_kajur_direct = ""; // Untuk query statistik jurusan
+$params_periode_kajur = []; // Untuk bind_param filter periode
+$types_periode_kajur = "";
+
+if ($selected_semester_filter_kajur !== 'semua' && $selected_tahun_ajaran_filter_kajur !== 'semua' && !empty($selected_semester_filter_kajur) && !empty($selected_tahun_ajaran_filter_kajur)) {
+    $sql_condition_periode_kajur_direct = " AND e.semester_evaluasi = ? AND e.tahun_ajaran_evaluasi = ? ";
+    $params_periode_kajur[] = $selected_semester_filter_kajur;
+    $params_periode_kajur[] = $selected_tahun_ajaran_filter_kajur;
+    $types_periode_kajur .= "ss";
+    $periode_evaluasi_display_kajur = htmlspecialchars($selected_semester_filter_kajur) . " - " . htmlspecialchars($selected_tahun_ajaran_filter_kajur);
+}
+
+// --- Statistik Jurusan dengan Filter ---
+// (Kode statistik jurusan tetap sama seperti sebelumnya, menggunakan $sql_condition_periode_kajur_direct dan $params_periode_kajur)
 $dept_overall_avg = 0.00;
 $total_dosen_in_dept_aktif = 0;
 $total_evals_in_dept = 0;
 
 if (!empty($department_managed) && $department_managed !== "Departemen Tidak Terdefinisi" && $department_managed !== "Error Mengambil Data Departemen") {
     $stmt_total_dosen_aktif = $conn->prepare(
-        "SELECT COUNT(d.user_id) as total_dosen 
-         FROM Dosen d 
-         JOIN Auth_Users au ON d.user_id = au.user_id 
+        "SELECT COUNT(d.user_id) as total_dosen
+         FROM Dosen d
+         JOIN Auth_Users au ON d.user_id = au.user_id
          WHERE d.department = ? AND au.role='dosen' AND au.is_active = 1"
-    ); //
+    );
     if ($stmt_total_dosen_aktif) {
         $stmt_total_dosen_aktif->bind_param("s", $department_managed);
         $stmt_total_dosen_aktif->execute();
@@ -53,15 +95,21 @@ if (!empty($department_managed) && $department_managed !== "Departemen Tidak Ter
         $stmt_total_dosen_aktif->close();
     }
 
-    $stmt_dept_avg = $conn->prepare(
-        "SELECT AVG(e.submission_average) as dept_avg, COUNT(DISTINCT e.evaluation_id) as total_evals 
-         FROM Evaluations e 
-         JOIN Auth_Users au_lecturer ON e.lecturer_user_id = au_lecturer.user_id
-         JOIN Dosen d ON au_lecturer.user_id = d.user_id 
-         WHERE d.department = ? AND au_lecturer.role = 'dosen'"
-    ); //
+    $sql_dept_avg = "SELECT AVG(e.submission_average) as dept_avg, COUNT(DISTINCT e.evaluation_id) as total_evals
+                     FROM Evaluations e
+                     JOIN Auth_Users au_lecturer ON e.lecturer_user_id = au_lecturer.user_id
+                     JOIN Dosen d ON au_lecturer.user_id = d.user_id
+                     WHERE d.department = ? AND au_lecturer.role = 'dosen' $sql_condition_periode_kajur_direct";
+    $stmt_dept_avg = $conn->prepare($sql_dept_avg);
     if ($stmt_dept_avg) {
-        $stmt_dept_avg->bind_param("s", $department_managed);
+        $all_params_dept_avg = array_merge([$department_managed], $params_periode_kajur);
+        $all_types_dept_avg = "s" . $types_periode_kajur;
+
+        if (!empty($params_periode_kajur)) {
+            $stmt_dept_avg->bind_param($all_types_dept_avg, ...$all_params_dept_avg);
+        } else {
+            $stmt_dept_avg->bind_param("s", $department_managed);
+        }
         $stmt_dept_avg->execute();
         $result_dept_avg = $stmt_dept_avg->get_result();
         if ($row_dept_avg = $result_dept_avg->fetch_assoc()) {
@@ -69,10 +117,13 @@ if (!empty($department_managed) && $department_managed !== "Departemen Tidak Ter
             $total_evals_in_dept = (int) $row_dept_avg['total_evals'];
         }
         $stmt_dept_avg->close();
+    } else {
+        error_log("Kajur Dashboard: Gagal prepare statement untuk dept_overall_avg: " . $conn->error);
     }
 }
 
-// Logika Paginasi dan Filter untuk Daftar Dosen Jurusan
+
+// --- Logika Paginasi dan Filter untuk Daftar Dosen Jurusan ---
 $limit_dosen = 10;
 $page_dosen = isset($_GET['page_dosen']) && is_numeric($_GET['page_dosen']) ? (int) $_GET['page_dosen'] : 1;
 $offset_dosen = ($page_dosen - 1) * $limit_dosen;
@@ -82,61 +133,108 @@ $dosen_jurusan_list = [];
 $total_records_dosen_jurusan = 0;
 $total_pages_dosen_jurusan = 1;
 
-$sql_base_kajur_dosen = "FROM Auth_Users au JOIN Dosen d ON au.user_id = d.user_id WHERE d.department = ? AND au.role = 'dosen' AND au.is_active = 1"; //
-$sql_conditions_kajur_dosen = "";
-$params_list_kajur_dosen = [$department_managed];
-$types_list_kajur_dosen = "s";
+// Query utama untuk mengambil daftar dosen
+$sql_dosen_list_base = "
+    SELECT 
+        au.user_id, au.full_name, d.nidn,
+        COALESCE(eval_stats.avg_score, NULL) as avg_score,
+        COALESCE(eval_stats.total_evaluations, 0) as total_evaluations
+    FROM Auth_Users au
+    JOIN Dosen d ON au.user_id = d.user_id
+    LEFT JOIN (
+        SELECT 
+            e_sub.lecturer_user_id,
+            AVG(e_sub.submission_average) as avg_score,
+            COUNT(e_sub.evaluation_id) as total_evaluations
+        FROM Evaluations e_sub
+        WHERE 1=1 "; // Kondisi WHERE 1=1 untuk memudahkan penambahan AND
+
+// Tambahkan kondisi filter periode ke subquery jika aktif
+$subquery_params = [];
+$subquery_types = "";
+if (!empty($params_periode_kajur)) {
+    // Kondisi untuk subquery Evaluations (e_sub)
+    $sql_dosen_list_base .= " AND e_sub.semester_evaluasi = ? AND e_sub.tahun_ajaran_evaluasi = ? ";
+    $subquery_params = array_merge($subquery_params, $params_periode_kajur);
+    $subquery_types .= $types_periode_kajur;
+}
+$sql_dosen_list_base .= " GROUP BY e_sub.lecturer_user_id
+    ) eval_stats ON au.user_id = eval_stats.lecturer_user_id
+    WHERE d.department = ? AND au.role = 'dosen' AND au.is_active = 1 ";
+
+// Parameter dan Tipe untuk kondisi WHERE utama (filter dosen dan departemen)
+$main_where_params = [$department_managed];
+$main_where_types = "s";
+$sql_main_where_conditions = "";
 
 if (!empty($search_query_kajur_dosen)) {
-    $sql_conditions_kajur_dosen .= " AND (au.full_name LIKE ? OR d.nidn LIKE ?)";
+    $sql_main_where_conditions .= " AND (au.full_name LIKE ? OR d.nidn LIKE ?) ";
     $search_term_kajur = "%" . $search_query_kajur_dosen . "%";
-    $params_list_kajur_dosen[] = $search_term_kajur;
-    $params_list_kajur_dosen[] = $search_term_kajur;
-    $types_list_kajur_dosen .= "ss";
+    $main_where_params[] = $search_term_kajur;
+    $main_where_params[] = $search_term_kajur;
+    $main_where_types .= "ss";
+}
+$sql_dosen_list_base .= $sql_main_where_conditions;
+
+// Hitung total record untuk paginasi (berdasarkan filter departemen dan nama/NIDN dosen)
+$sql_total_dosen_jurusan = "SELECT COUNT(au.user_id) as total 
+                            FROM Auth_Users au 
+                            JOIN Dosen d ON au.user_id = d.user_id 
+                            WHERE d.department = ? AND au.role = 'dosen' AND au.is_active = 1 $sql_main_where_conditions";
+$stmt_total_dosen_jurusan = $conn->prepare($sql_total_dosen_jurusan);
+if ($stmt_total_dosen_jurusan) {
+    $stmt_total_dosen_jurusan->bind_param($main_where_types, ...$main_where_params);
+    $stmt_total_dosen_jurusan->execute();
+    $res_total = $stmt_total_dosen_jurusan->get_result()->fetch_assoc();
+    if ($res_total)
+        $total_records_dosen_jurusan = (int) $res_total['total'];
+    if ($limit_dosen > 0 && $total_records_dosen_jurusan > 0) {
+        $total_pages_dosen_jurusan = ceil($total_records_dosen_jurusan / $limit_dosen);
+    }
+    $stmt_total_dosen_jurusan->close();
 }
 
-if (!empty($department_managed) && $department_managed !== "Departemen Tidak Terdefinisi" && $department_managed !== "Error Mengambil Data Departemen") {
-    $sql_total_dosen_jurusan = "SELECT COUNT(au.user_id) as total " . $sql_base_kajur_dosen . $sql_conditions_kajur_dosen;
-    $stmt_total_dosen_jurusan = $conn->prepare($sql_total_dosen_jurusan);
-    if ($stmt_total_dosen_jurusan) {
-        $stmt_total_dosen_jurusan->bind_param($types_list_kajur_dosen, ...$params_list_kajur_dosen);
-        $stmt_total_dosen_jurusan->execute();
-        $res_total = $stmt_total_dosen_jurusan->get_result()->fetch_assoc();
-        if ($res_total)
-            $total_records_dosen_jurusan = (int) $res_total['total'];
-        if ($limit_dosen > 0 && $total_records_dosen_jurusan > 0) {
-            $total_pages_dosen_jurusan = ceil($total_records_dosen_jurusan / $limit_dosen);
-        }
-        $stmt_total_dosen_jurusan->close();
+
+// Query final untuk daftar dosen dengan paginasi
+$sql_dosen_jurusan_query_final = $sql_dosen_list_base . " ORDER BY au.full_name ASC LIMIT ? OFFSET ?";
+
+// Gabungkan semua parameter dalam urutan yang benar
+$final_bind_params = [];
+$final_bind_types = "";
+
+// Parameter untuk subquery (filter periode)
+$final_bind_params = array_merge($final_bind_params, $subquery_params);
+$final_bind_types .= $subquery_types;
+
+// Parameter untuk WHERE utama (departemen, search nama/NIDN)
+$final_bind_params = array_merge($final_bind_params, $main_where_params);
+$final_bind_types .= $main_where_types;
+
+// Parameter untuk LIMIT dan OFFSET
+$final_bind_params[] = $limit_dosen;
+$final_bind_params[] = $offset_dosen;
+$final_bind_types .= "ii";
+
+$stmt_dosen_jurusan = $conn->prepare($sql_dosen_jurusan_query_final);
+if ($stmt_dosen_jurusan) {
+    if (!empty($final_bind_types)) {
+        $stmt_dosen_jurusan->bind_param($final_bind_types, ...$final_bind_params);
     }
-
-    $sql_dosen_jurusan_select = "SELECT au.user_id, au.full_name, d.nidn, 
-                                (SELECT AVG(e_sub.submission_average) FROM Evaluations e_sub WHERE e_sub.lecturer_user_id = au.user_id) as avg_score,
-                                (SELECT COUNT(e_sub.evaluation_id) FROM Evaluations e_sub WHERE e_sub.lecturer_user_id = au.user_id) as total_evaluations ";
-    $sql_dosen_jurusan_query = $sql_dosen_jurusan_select . $sql_base_kajur_dosen . $sql_conditions_kajur_dosen . " ORDER BY au.full_name ASC LIMIT ? OFFSET ?";
-
-    $params_list_kajur_dosen_paginated = $params_list_kajur_dosen;
-    $params_list_kajur_dosen_paginated[] = $limit_dosen;
-    $params_list_kajur_dosen_paginated[] = $offset_dosen;
-    $types_list_kajur_dosen_paginated = $types_list_kajur_dosen . "ii";
-
-    $stmt_dosen_jurusan = $conn->prepare($sql_dosen_jurusan_query);
-    if ($stmt_dosen_jurusan) {
-        $stmt_dosen_jurusan->bind_param($types_list_kajur_dosen_paginated, ...$params_list_kajur_dosen_paginated);
-        $stmt_dosen_jurusan->execute();
-        $result_dosen_jurusan = $stmt_dosen_jurusan->get_result();
-        while ($row = $result_dosen_jurusan->fetch_assoc()) {
-            $row['avg_score'] = $row['avg_score'] ? round((float) $row['avg_score'], 2) : null;
-            $dosen_jurusan_list[] = $row;
-        }
-        $stmt_dosen_jurusan->close();
-    } else {
-        error_log("Kajur Dashboard: Gagal prepare statement untuk dosen_jurusan_list: " . $conn->error);
+    $stmt_dosen_jurusan->execute();
+    $result_dosen_jurusan = $stmt_dosen_jurusan->get_result();
+    while ($row = $result_dosen_jurusan->fetch_assoc()) {
+        $dosen_jurusan_list[] = $row;
     }
+    $stmt_dosen_jurusan->close();
+} else {
+    error_log("Kajur Dashboard: Gagal prepare statement untuk dosen_jurusan_list: " . $conn->error);
+    error_log("Query: " . $sql_dosen_jurusan_query_final);
+    error_log("Types: " . $final_bind_types);
+    error_log("Params: " . print_r($final_bind_params, true));
 }
+
 
 $current_page_php = basename($_SERVER['PHP_SELF']);
-
 $success_message_kajur = $_SESSION['success_message_kajur_dashboard'] ?? '';
 unset($_SESSION['success_message_kajur_dashboard']);
 $error_message_kajur = $_SESSION['error_message_kajur_dashboard'] ?? '';
@@ -153,23 +251,42 @@ unset($_SESSION['error_message_kajur_dashboard']);
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script>
         var js_initial_sidebar_force_closed = <?php echo $js_force_sidebar_closed; ?>;
+        function updatePeriodeFieldsKajur(selectedValue) {
+            const semesterHidden = document.getElementById('semester_filter_hidden_kajur');
+            const tahunAjaranHidden = document.getElementById('tahun_ajaran_filter_hidden_kajur');
+            if (selectedValue === 'semua_semua') {
+                semesterHidden.value = 'semua';
+                tahunAjaranHidden.value = 'semua';
+            } else {
+                const parts = selectedValue.split('___');
+                semesterHidden.value = parts[0];
+                tahunAjaranHidden.value = parts[1];
+            }
+        }
+        document.addEventListener('DOMContentLoaded', function () {
+            const selectElement = document.getElementById('periode_filter_select_kajur');
+            if (selectElement) {
+                updatePeriodeFieldsKajur(selectElement.value);
+            }
+        });
     </script>
     <style>
-        /* Gaya untuk Paginasi dan Filter Form (Sama seperti admin_manage_users.php) */
         .filter-form {
             display: flex;
             gap: 15px;
             align-items: flex-end;
             flex-wrap: wrap;
-            padding: 15px;
-            background-color: var(--background-color);
-            border-radius: 8px;
+            padding: 15px 0px 20px 0px;
+            border-bottom: 1px solid var(--tertiary-color);
             margin-bottom: 20px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
         }
 
         .filter-form .input-group {
             margin-bottom: 0;
+            flex: 1 1 180px;
+        }
+
+        .filter-form .input-group.periode {
             flex: 1 1 250px;
         }
 
@@ -181,14 +298,15 @@ unset($_SESSION['error_message_kajur_dashboard']);
             display: block;
         }
 
-        .filter-form input[type="text"] {
+        .filter-form input[type="text"],
+        .filter-form select {
+            width: 100%;
+            box-sizing: border-box;
             height: 40px;
             padding: 8px 12px;
             font-size: 0.9em;
             border-radius: 6px;
-            border: 1px solid var(--input-border-color);
-            width: 100%;
-            box-sizing: border-box;
+            border: 1px solid var(--tertiary-color);
         }
 
         .filter-form button,
@@ -207,6 +325,15 @@ unset($_SESSION['error_message_kajur_dashboard']);
             cursor: pointer;
         }
 
+        .filter-form button {
+            background-color: var(--primary-color);
+            color: var(--white-color);
+        }
+
+        .filter-form button:hover {
+            background-color: var(--secondary-color);
+        }
+
         .filter-form a.btn-reset-filter {
             background-color: #6c757d;
             color: white;
@@ -219,6 +346,33 @@ unset($_SESSION['error_message_kajur_dashboard']);
         .filter-form a.btn-filter-action i,
         .filter-form button i {
             margin-right: 6px;
+        }
+
+        .department-summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .summary-card {
+            background-color: var(--white-color);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px var(--shadow-color);
+            border-left: 5px solid var(--primary-color);
+        }
+
+        .summary-card h4 {
+            margin-top: 0;
+            color: var(--primary-color);
+        }
+
+        .summary-card p {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin: 5px 0 0 0;
+            color: var(--text-color);
         }
 
         .pagination {
@@ -243,18 +397,14 @@ unset($_SESSION['error_message_kajur_dashboard']);
             font-weight: 500;
             border: 1px solid var(--tertiary-color);
             background-color: var(--white-color);
-            /* Latar putih untuk default */
             color: var(--primary-color);
-            /* Teks ungu untuk default */
         }
 
         .pagination li a:hover,
         .pagination li.active span,
         .pagination li.active a {
             background-color: var(--primary-color);
-            /* Latar ungu untuk hover dan aktif */
             color: var(--white-color);
-            /* Teks putih untuk hover dan aktif */
             border-color: var(--primary-color);
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         }
@@ -315,7 +465,7 @@ unset($_SESSION['error_message_kajur_dashboard']);
                     jurusan Anda dan mengirimkan komunikasi kepada dosen.</p>
                 <p><strong>Jurusan yang Dikelola:</strong>
                     <?php echo htmlspecialchars($department_managed ?: 'Belum ditentukan atau Error'); ?></p>
-                <p><strong>Periode Data:</strong> <?php echo htmlspecialchars($periode_evaluasi_display); ?></p>
+                <p><strong>Periode Data Ditampilkan:</strong> <?php echo $periode_evaluasi_display_kajur; ?></p>
             </div>
 
             <div class="department-summary-grid">
@@ -324,11 +474,11 @@ unset($_SESSION['error_message_kajur_dashboard']);
                     <p><?php echo $total_dosen_in_dept_aktif; ?></p>
                 </div>
                 <div class="summary-card">
-                    <h4>Total Evaluasi di Jurusan</h4>
+                    <h4>Total Evaluasi di Jurusan (<?php echo $periode_evaluasi_display_kajur; ?>)</h4>
                     <p><?php echo $total_evals_in_dept; ?></p>
                 </div>
                 <div class="summary-card">
-                    <h4>Rata-Rata Skor Jurusan</h4>
+                    <h4>Rata-Rata Skor Jurusan (<?php echo $periode_evaluasi_display_kajur; ?>)</h4>
                     <p><?php echo number_format($dept_overall_avg, 2); ?> / 4.00</p>
                 </div>
             </div>
@@ -337,17 +487,39 @@ unset($_SESSION['error_message_kajur_dashboard']);
                 <h2><i class="fas fa-users"></i> Daftar Evaluasi Dosen (Aktif) di Jurusan
                     "<?php echo htmlspecialchars($department_managed); ?>"</h2>
 
-                <form action="kajur_dashboard.php" method="GET" class="filter-form">
+                <form action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']); ?>" method="GET" class="filter-form">
+                    <div class="input-group periode">
+                        <label for="periode_filter_select_kajur">Pilih Periode Data:</label>
+                        <select name="periode_filter_select" id="periode_filter_select_kajur"
+                            onchange="updatePeriodeFieldsKajur(this.value)">
+                            <option value="semua_semua" <?php echo ($selected_semester_filter_kajur === 'semua') ? 'selected' : ''; ?>>Semua Periode</option>
+                            <?php foreach ($available_periods_kajur as $period): ?>
+                                <?php
+                                $period_val = htmlspecialchars($period['semester_evaluasi']) . "___" . htmlspecialchars($period['tahun_ajaran_evaluasi']);
+                                $period_disp = htmlspecialchars($period['semester_evaluasi']) . " - " . htmlspecialchars($period['tahun_ajaran_evaluasi']);
+                                $is_sel = ($selected_semester_filter_kajur === $period['semester_evaluasi'] && $selected_tahun_ajaran_filter_kajur === $period['tahun_ajaran_evaluasi']);
+                                ?>
+                                <option value="<?php echo $period_val; ?>" <?php echo $is_sel ? 'selected' : ''; ?>>
+                                    <?php echo $period_disp; ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                        <input type="hidden" name="semester_filter" id="semester_filter_hidden_kajur"
+                            value="<?php echo htmlspecialchars($selected_semester_filter_kajur); ?>">
+                        <input type="hidden" name="tahun_ajaran_filter" id="tahun_ajaran_filter_hidden_kajur"
+                            value="<?php echo htmlspecialchars($selected_tahun_ajaran_filter_kajur); ?>">
+                    </div>
                     <div class="input-group">
-                        <label for="search_dosen">Cari Dosen</label>
+                        <label for="search_dosen">Cari Dosen (Nama/NIDN)</label>
                         <input type="text" name="search_dosen" id="search_dosen" placeholder="Nama atau NIDN..."
                             value="<?php echo htmlspecialchars($search_query_kajur_dosen); ?>">
                     </div>
-                    <button type="submit" class="btn-login btn-filter-action"><i class="fas fa-filter"></i>
-                        Filter</button>
+                    <button type="submit"><i class="fas fa-filter"></i> Filter</button>
                     <a href="kajur_dashboard.php" class="btn-filter-action btn-reset-filter"><i
-                            class="fas fa-times"></i> Reset</a>
+                            class="fas fa-times"></i> Reset Filter</a>
                 </form>
+                <p style="font-size:0.9em; margin-top:0; color: #555;"><i>Menampilkan data untuk periode:
+                        <?php echo $periode_evaluasi_display_kajur; ?></i></p>
 
                 <?php if (!empty($department_managed) && $department_managed !== "Departemen Tidak Terdefinisi" && $department_managed !== "Error Mengambil Data Departemen"): ?>
                     <?php if (!empty($dosen_jurusan_list)): ?>
@@ -375,7 +547,7 @@ unset($_SESSION['error_message_kajur_dashboard']);
                                             </td>
                                             <td style="text-align:center;"><?php echo (int) $dosen['total_evaluations']; ?></td>
                                             <td>
-                                                <a href="kajur_lihat_evaluasi_dosen.php?dosen_id=<?php echo $dosen['user_id']; ?>"
+                                                <a href="kajur_lihat_evaluasi_dosen.php?dosen_id=<?php echo $dosen['user_id']; ?>&semester_filter=<?php echo urlencode($selected_semester_filter_kajur); ?>&tahun_ajaran_filter=<?php echo urlencode($selected_tahun_ajaran_filter_kajur); ?>"
                                                     class="btn-penilaian" style="font-size:0.8em; padding: 5px 10px;">
                                                     <i class="fas fa-eye"></i> Lihat Detail
                                                 </a>
@@ -387,20 +559,21 @@ unset($_SESSION['error_message_kajur_dashboard']);
                         </div>
                         <?php if ($total_pages_dosen_jurusan > 1): ?>
                             <ul class="pagination">
-                                <?php $query_params_kajur = "&search_dosen=" . urlencode($search_query_kajur_dosen); ?>
+                                <?php
+                                $query_params_kajur_page = "&search_dosen=" . urlencode($search_query_kajur_dosen) . "&semester_filter=" . urlencode($selected_semester_filter_kajur) . "&tahun_ajaran_filter=" . urlencode($selected_tahun_ajaran_filter_kajur);
+                                ?>
                                 <?php if ($page_dosen > 1): ?>
                                     <li><a
-                                            href="?page_dosen=<?php echo $page_dosen - 1; ?><?php echo $query_params_kajur; ?>">Sebelumnya</a>
+                                            href="?page_dosen=<?php echo $page_dosen - 1; ?><?php echo $query_params_kajur_page; ?>">Sebelumnya</a>
                                     </li>
                                 <?php else: ?>
                                     <li class="disabled"><span>Sebelumnya</span></li>
                                 <?php endif; ?>
-
                                 <?php
                                 $start_loop_dosen_p = max(1, $page_dosen - 2);
                                 $end_loop_dosen_p = min($total_pages_dosen_jurusan, $page_dosen + 2);
                                 if ($start_loop_dosen_p > 1) {
-                                    echo '<li><a href="?page_dosen=1' . $query_params_kajur . '">1</a></li>';
+                                    echo '<li><a href="?page_dosen=1' . $query_params_kajur_page . '">1</a></li>';
                                     if ($start_loop_dosen_p > 2)
                                         echo '<li class="disabled"><span>...</span></li>';
                                 }
@@ -409,34 +582,35 @@ unset($_SESSION['error_message_kajur_dashboard']);
                                         <?php if ($i == $page_dosen): ?>
                                             <span><?php echo $i; ?></span>
                                         <?php else: ?>
-                                            <a href="?page_dosen=<?php echo $i; ?><?php echo $query_params_kajur; ?>"><?php echo $i; ?></a>
+                                            <a
+                                                href="?page_dosen=<?php echo $i; ?><?php echo $query_params_kajur_page; ?>"><?php echo $i; ?></a>
                                         <?php endif; ?>
                                     </li>
                                 <?php endfor;
                                 if ($end_loop_dosen_p < $total_pages_dosen_jurusan) {
                                     if ($end_loop_dosen_p < $total_pages_dosen_jurusan - 1)
                                         echo '<li class="disabled"><span>...</span></li>';
-                                    echo '<li><a href="?page_dosen=' . $total_pages_dosen_jurusan . $query_params_kajur . '">' . $total_pages_dosen_jurusan . '</a></li>';
+                                    echo '<li><a href="?page_dosen=' . $total_pages_dosen_jurusan . $query_params_kajur_page . '">' . $total_pages_dosen_jurusan . '</a></li>';
                                 } ?>
                                 <?php if ($page_dosen < $total_pages_dosen_jurusan): ?>
                                     <li><a
-                                            href="?page_dosen=<?php echo $page_dosen + 1; ?><?php echo $query_params_kajur; ?>">Berikutnya</a>
+                                            href="?page_dosen=<?php echo $page_dosen + 1; ?><?php echo $query_params_kajur_page; ?>">Berikutnya</a>
                                     </li>
                                 <?php else: ?>
                                     <li class="disabled"><span>Berikutnya</span></li>
                                 <?php endif; ?>
                             </ul>
                         <?php endif; ?>
-
                     <?php else: ?>
                         <p>
-                            <?php if (!empty($search_query_kajur_dosen)): ?>
-                                Tidak ada dosen aktif yang cocok dengan kriteria pencarian Anda di jurusan
-                                "<?php echo htmlspecialchars($department_managed); ?>".
+                            <?php if (!empty($search_query_kajur_dosen) || ($selected_semester_filter_kajur !== 'semua')): ?>
+                                Tidak ada dosen aktif yang cocok dengan kriteria pencarian/filter Anda di jurusan
+                                "<?php echo htmlspecialchars($department_managed); ?>" untuk periode
+                                <?php echo strtolower($periode_evaluasi_display_kajur); ?>.
                             <?php else: ?>
                                 Belum ada data dosen aktif yang terdaftar di jurusan
-                                "<?php echo htmlspecialchars($department_managed); ?>"
-                                atau belum ada evaluasi yang masuk untuk dosen di jurusan tersebut.
+                                "<?php echo htmlspecialchars($department_managed); ?>" atau belum ada evaluasi yang masuk untuk
+                                dosen di jurusan tersebut pada periode ini.
                             <?php endif; ?>
                         </p>
                     <?php endif; ?>
@@ -445,7 +619,6 @@ unset($_SESSION['error_message_kajur_dashboard']);
                         departemen yang dikelola di tabel 'Kajur'.</p>
                 <?php endif; ?>
             </section>
-
         </main>
     </div>
     <script src="js/script.js"></script>
