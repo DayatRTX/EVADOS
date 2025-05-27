@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 26, 2025 at 08:15 PM
+-- Generation Time: May 27, 2025 at 07:05 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -53,7 +53,7 @@ INSERT INTO `auth_users` (`user_id`, `username`, `email`, `password_hash`, `role
 (9, 'sk24mic2023', 'sk24mic2023@example.com', '$2y$10$S0qjooIzpgIuc.YiM3vP4.ovhpGBk9VtT2bkknqvjfOlQSr8XtxAq', 'mahasiswa', 'Zaskia Putri Aulia', 1),
 (10, 'bd14mic2023', 'bd14mic2023@example.com', '$2y$10$S0qjooIzpgIuc.YiM3vP4.ovhpGBk9VtT2bkknqvjfOlQSr8XtxAq', 'mahasiswa', 'Putri Safira', 1),
 (11, 'bd24mic2023', 'bd24mic2023@example.com', '$2y$10$S0qjooIzpgIuc.YiM3vP4.ovhpGBk9VtT2bkknqvjfOlQSr8XtxAq', 'mahasiswa', 'Feni Febriyani', 1),
-(12, 'sk4mid2023', 'sk4mid2023@example.com', '$2y$10$S0qjooIzpgIuc.YiM3vP4.ovhpGBk9VtT2bkknqvjfOlQSr8XtxAq', 'mahasiswa', 'Nyayu Diah Khairunnisa', 1),
+(12, 'sk4mid2023', 'sk4mid2023@example.com', '$2y$10$S0qjooIzpgIuc.YiM3vP4.ovhpGBk9VtT2bkknqvjfOlQSr8XtxAq', 'mahasiswa', 'Nyayu Dia Khairunnisa', 1),
 (13, 'bd4mid2023', 'bd4mid2023@example.com', '$2y$10$S0qjooIzpgIuc.YiM3vP4.ovhpGBk9VtT2bkknqvjfOlQSr8XtxAq', 'mahasiswa', 'Destiarana Putri', 1),
 (14, NULL, 'dosen.D@example.com', '$2y$10$S0qjooIzpgIuc.YiM3vP4.ovhpGBk9VtT2bkknqvjfOlQSr8XtxAq', 'dosen', 'Dr. Hetty Meileni, S.Kom., M.T.', 1),
 (15, NULL, 'dosen.E@example.com', '$2y$10$S0qjooIzpgIuc.YiM3vP4.ovhpGBk9VtT2bkknqvjfOlQSr8XtxAq', 'dosen', 'Deri Darfin, S.Sos., M.Si.', 1),
@@ -109,6 +109,8 @@ CREATE TABLE `evaluations` (
   `evaluation_id` int(11) NOT NULL,
   `student_user_id` int(11) NOT NULL,
   `lecturer_user_id` int(11) NOT NULL,
+  `semester_evaluasi` varchar(50) NOT NULL COMMENT 'Semester saat evaluasi dilakukan, cth: Genap 2024/2025',
+  `tahun_ajaran_evaluasi` varchar(10) NOT NULL COMMENT 'Tahun ajaran saat evaluasi, cth: 2024/2025',
   `q1_score` tinyint(4) DEFAULT NULL,
   `q2_score` tinyint(4) DEFAULT NULL,
   `q3_score` tinyint(4) DEFAULT NULL,
@@ -219,7 +221,7 @@ CREATE TABLE `mahasiswa` (
 
 INSERT INTO `mahasiswa` (`user_id`, `npm`, `angkatan`, `jabatan_kelas`, `kelas`) VALUES
 (1, '062340833133', '2023', 'Ketua Kelas', '4MIC'),
-(2, '11122002', '2023', 'Ketua Kelas', '4MID'),
+(2, '062340833143', '2023', 'Ketua Kelas', '4MID'),
 (7, '062340833121', '2023', 'Wakil Ketua Kelas', '4MIC'),
 (8, '062340833131', '2023', 'Sekretaris', '4MIC'),
 (9, '062340833134', '2023', 'Wakil Sekretaris', '4MIC'),
@@ -295,7 +297,7 @@ CREATE TABLE `system_settings` (
 
 INSERT INTO `system_settings` (`setting_key`, `setting_value`, `description`, `last_updated`) VALUES
 ('batas_akhir_penilaian', '2025-09-20', 'Batas akhir periode penilaian (format YYYY-MM-DD).', '2025-05-26 13:33:52'),
-('semester_aktif', 'Genap 2024/2025', 'Semester aktif yang ditampilkan di sistem evaluasi.', '2025-05-26 14:23:29');
+('semester_aktif', 'Genap 2024/2025', 'Semester aktif yang ditampilkan di sistem evaluasi.', '2025-05-27 04:36:59');
 
 --
 -- Indexes for dumped tables
@@ -321,8 +323,9 @@ ALTER TABLE `dosen`
 --
 ALTER TABLE `evaluations`
   ADD PRIMARY KEY (`evaluation_id`),
-  ADD UNIQUE KEY `unique_evaluation` (`student_user_id`,`lecturer_user_id`),
-  ADD KEY `lecturer_user_id` (`lecturer_user_id`);
+  ADD UNIQUE KEY `unique_eval_per_student_lecturer_periode` (`student_user_id`,`lecturer_user_id`,`semester_evaluasi`,`tahun_ajaran_evaluasi`),
+  ADD KEY `lecturer_user_id` (`lecturer_user_id`),
+  ADD KEY `idx_periode_evaluasi` (`semester_evaluasi`,`tahun_ajaran_evaluasi`);
 
 --
 -- Indexes for table `jadwal_mengajar`
