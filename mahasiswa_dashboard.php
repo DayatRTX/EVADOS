@@ -10,13 +10,14 @@ if (isset($_SESSION['initial_dashboard_load_sidebar_closed']) && $_SESSION['init
     unset($_SESSION['initial_dashboard_load_sidebar_closed']);
 }
 
-require_once 'includes/auth_check_mahasiswa.php'; //
-require_once 'config/db.php'; //
+require_once 'includes/auth_check_mahasiswa.php';
+require_once 'config/db.php';
 
 // Ambil pengaturan sistem
 $settings_db = [];
 $semester_aktif = "Semester Belum Diatur";
 $batas_akhir_penilaian_db_str = "2099-12-31"; // Default jauh di masa depan jika tidak ada setting
+$tahun_ajaran_aktif = ""; // Variabel baru untuk tahun ajaran
 
 $result_settings_db = $conn->query("SELECT setting_key, setting_value FROM system_settings");
 if ($result_settings_db) {
@@ -25,7 +26,21 @@ if ($result_settings_db) {
     }
     $semester_aktif = $settings_db['semester_aktif'] ?? $semester_aktif;
     $batas_akhir_penilaian_db_str = $settings_db['batas_akhir_penilaian'] ?? $batas_akhir_penilaian_db_str;
+
+    // Ekstrak tahun ajaran dari semester_aktif
+    if ($semester_aktif !== "Semester Belum Diatur") {
+        if (preg_match('/(\d{4}\/\d{4})/', $semester_aktif, $matches_tahun)) {
+            $tahun_ajaran_aktif = $matches_tahun[1];
+        } else {
+            error_log("Format semester_aktif (" . $semester_aktif . ") di mahasiswa_dashboard.php tidak mengandung tahun ajaran (YYYY/YYYY).");
+            // Handle error, mungkin $tahun_ajaran_aktif tetap kosong atau diberi nilai default error
+            // atau redirect dengan pesan error jika ini krusial untuk fungsionalitas.
+        }
+    }
+} else {
+    error_log("Gagal mengambil system_settings di mahasiswa_dashboard.php: " . $conn->error);
 }
+
 
 // Proses batas waktu penilaian
 $batas_akhir_display = "Tanggal Belum Diatur";
@@ -34,13 +49,11 @@ $tanggal_sekarang = new DateTime();
 
 if ($batas_akhir_penilaian_db_str !== "Tanggal Belum Diatur") {
     try {
-        // Set batas waktu ke akhir hari tersebut (23:59:59)
         $batas_waktu_obj = DateTime::createFromFormat('Y-m-d H:i:s', $batas_akhir_penilaian_db_str . ' 23:59:59');
         if ($batas_waktu_obj) {
             if ($tanggal_sekarang > $batas_waktu_obj) {
                 $periode_penilaian_berakhir = true;
             }
-            // Format untuk tampilan
             if (class_exists('IntlDateFormatter')) {
                 $formatter = new IntlDateFormatter('id_ID', IntlDateFormatter::LONG, IntlDateFormatter::NONE, 'Asia/Jakarta');
                 $batas_akhir_display = $formatter->format($batas_waktu_obj);
@@ -50,18 +63,18 @@ if ($batas_akhir_penilaian_db_str !== "Tanggal Belum Diatur") {
             }
         } else {
             $batas_akhir_display = "Format Tanggal Pengaturan Salah";
-            // $periode_penilaian_berakhir = true; // Anggap berakhir jika format salah, untuk keamanan
+            // $periode_penilaian_berakhir = true; // Anggap berakhir jika format salah
         }
     } catch (Exception $e) {
         $batas_akhir_display = "Error Tanggal Pengaturan";
-        // $periode_penilaian_berakhir = true; 
-        error_log("Error DateTime untuk batas_akhir_penilaian: " . $e->getMessage());
+        // $periode_penilaian_berakhir = true;
+        error_log("Error DateTime untuk batas_akhir_penilaian (mahasiswa_dashboard): " . $e->getMessage());
     }
 }
 
 
 $kelas_mahasiswa = '';
-$stmt_kelas = $conn->prepare("SELECT kelas FROM Mahasiswa WHERE user_id = ?"); //
+$stmt_kelas = $conn->prepare("SELECT kelas FROM Mahasiswa WHERE user_id = ?");
 if ($stmt_kelas) {
     $stmt_kelas->bind_param("i", $loggedInUserId);
     $stmt_kelas->execute();
@@ -70,19 +83,21 @@ if ($stmt_kelas) {
         $kelas_mahasiswa = $row_kelas['kelas'];
     }
     $stmt_kelas->close();
+} else {
+    error_log("DB Error (prepare) - Fetching student class in mahasiswa_dashboard.php: " . $conn->error);
 }
 
 $dosen_list = [];
 $total_evaluable_lecturers = 0;
 $evaluated_count = 0;
 
-if (!empty($kelas_mahasiswa) && $semester_aktif !== "Semester Belum Diatur") {
+if (!empty($kelas_mahasiswa) && $semester_aktif !== "Semester Belum Diatur" && !empty($tahun_ajaran_aktif)) {
     $sql_dosen = "SELECT DISTINCT au.user_id, au.full_name, d.nidn
                   FROM Auth_Users au
                   JOIN Dosen d ON au.user_id = d.user_id
                   JOIN Jadwal_Mengajar jm ON au.user_id = jm.dosen_user_id
-                  WHERE jm.nama_kelas = ? AND jm.semester = ? 
-                  ORDER BY au.full_name ASC"; //
+                  WHERE jm.nama_kelas = ? AND jm.semester = ?
+                  ORDER BY au.full_name ASC";
     $stmt_dosen = $conn->prepare($sql_dosen);
     if ($stmt_dosen) {
         $stmt_dosen->bind_param("ss", $kelas_mahasiswa, $semester_aktif);
@@ -94,23 +109,27 @@ if (!empty($kelas_mahasiswa) && $semester_aktif !== "Semester Belum Diatur") {
             }
             $total_evaluable_lecturers = count($dosen_list);
 
-            $sql_evaluated_count = "SELECT COUNT(DISTINCT lecturer_user_id) as count 
-                                    FROM Evaluations e
-                                    JOIN Jadwal_Mengajar jm ON e.lecturer_user_id = jm.dosen_user_id
-                                    WHERE e.student_user_id = ? 
-                                    AND jm.nama_kelas = ? AND jm.semester = ?"; //
+            // Hitung dosen yang sudah dievaluasi PADA PERIODE AKTIF
+            $sql_evaluated_count = "SELECT COUNT(DISTINCT lecturer_user_id) as count
+                                    FROM Evaluations
+                                    WHERE student_user_id = ?
+                                    AND semester_evaluasi = ? AND tahun_ajaran_evaluasi = ?";
             $stmt_evaluated_count = $conn->prepare($sql_evaluated_count);
             if ($stmt_evaluated_count) {
-                $stmt_evaluated_count->bind_param("iss", $loggedInUserId, $kelas_mahasiswa, $semester_aktif);
+                $stmt_evaluated_count->bind_param("iss", $loggedInUserId, $semester_aktif, $tahun_ajaran_aktif);
                 $stmt_evaluated_count->execute();
                 $res_eval_count = $stmt_evaluated_count->get_result();
                 if ($row_eval_count = $res_eval_count->fetch_assoc()) {
                     $evaluated_count = (int) $row_eval_count['count'];
                 }
                 $stmt_evaluated_count->close();
+            } else {
+                error_log("DB Error (prepare) - Counting evaluated lecturers in mahasiswa_dashboard.php: " . $conn->error);
             }
         }
         $stmt_dosen->close();
+    } else {
+        error_log("DB Error (prepare) - Fetching lecturers in mahasiswa_dashboard.php: " . $conn->error);
     }
 }
 
@@ -181,6 +200,8 @@ $current_page_php_mhs = basename($_SERVER['PHP_SELF']);
                     <li>Penilaian ini bertujuan untuk meningkatkan kualitas pembelajaran.</li>
                     <li>Identitas Anda sebagai penilai akan dijaga kerahasiaannya (ANONIM).</li>
                     <li>Mohon berikan penilaian yang objektif dan konstruktif.</li>
+                    <li>Anda dapat memberikan satu set penilaian untuk setiap dosen yang mengajar Anda pada periode ini.
+                    </li>
                 </ul>
             </div>
 
@@ -191,11 +212,19 @@ $current_page_php_mhs = basename($_SERVER['PHP_SELF']);
                 </div>
             <?php endif; ?>
 
+            <?php if (empty($tahun_ajaran_aktif) && $semester_aktif !== "Semester Belum Diatur"): ?>
+                <div class="info-box" style="border-left-color: var(--error-color); background-color: #f8d7da;">
+                    <h4><i class="fas fa-exclamation-triangle"></i> Pengaturan Periode Tidak Lengkap</h4>
+                    <p>Informasi tahun ajaran untuk periode evaluasi saat ini tidak dapat ditemukan. Silakan hubungi
+                        administrator.</p>
+                </div>
+            <?php endif; ?>
+
             <div class="info-box" style="margin-bottom: 20px;">
                 <h4>Progres Penilaian Anda (Kelas: <?php echo htmlspecialchars($kelas_mahasiswa); ?>)</h4>
-                <?php if ($total_evaluable_lecturers > 0): ?>
+                <?php if ($total_evaluable_lecturers > 0 && !empty($tahun_ajaran_aktif)): ?>
                     <p>Anda telah menilai <strong><?php echo $evaluated_count; ?></strong> dari
-                        <strong><?php echo $total_evaluable_lecturers; ?></strong> dosen yang tersedia.
+                        <strong><?php echo $total_evaluable_lecturers; ?></strong> dosen yang tersedia pada periode ini.
                     </p>
                     <div style="background-color: #e0e0e0; border-radius: 5px; padding: 2px; margin-top: 5px;">
                         <div
@@ -203,6 +232,8 @@ $current_page_php_mhs = basename($_SERVER['PHP_SELF']);
                             <?php echo ($total_evaluable_lecturers > 0 ? round(($evaluated_count / $total_evaluable_lecturers) * 100) : 0); ?>%
                         </div>
                     </div>
+                <?php elseif (empty($tahun_ajaran_aktif) && $semester_aktif !== "Semester Belum Diatur"): ?>
+                    <p>Tidak dapat menghitung progres karena informasi tahun ajaran tidak lengkap.</p>
                 <?php else: ?>
                     <p>Tidak ada dosen yang dijadwalkan untuk Anda evaluasi saat ini di kelas
                         <?php echo htmlspecialchars($kelas_mahasiswa); ?> untuk periode
@@ -223,26 +254,32 @@ $current_page_php_mhs = basename($_SERVER['PHP_SELF']);
                             <th style="width: 50px;">No.</th>
                             <th>NIDN</th>
                             <th>Nama Dosen</th>
-                            <th>Status</th>
+                            <th>Status Penilaian Periode Ini</th>
                             <th>Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <?php if (!empty($dosen_list)): ?>
+                        <?php if (!empty($dosen_list) && !empty($tahun_ajaran_aktif)): ?>
                             <?php $no = 1;
                             foreach ($dosen_list as $dosen): ?>
                                 <?php
-                                $has_evaluated = false;
-                                $sql_check_eval_loop = "SELECT evaluation_id FROM Evaluations WHERE student_user_id = ? AND lecturer_user_id = ?"; //
-                                $stmt_check_eval_loop = $conn->prepare($sql_check_eval_loop);
-                                if ($stmt_check_eval_loop) {
-                                    $stmt_check_eval_loop->bind_param("ii", $loggedInUserId, $dosen['user_id']);
-                                    $stmt_check_eval_loop->execute();
-                                    $result_check_eval_loop = $stmt_check_eval_loop->get_result();
-                                    if ($result_check_eval_loop->num_rows > 0) {
-                                        $has_evaluated = true;
+                                $has_evaluated_periode_ini = false;
+                                if (!empty($tahun_ajaran_aktif)) { // Hanya cek jika tahun ajaran valid
+                                    $sql_check_eval_loop = "SELECT evaluation_id FROM Evaluations 
+                                                            WHERE student_user_id = ? AND lecturer_user_id = ?
+                                                            AND semester_evaluasi = ? AND tahun_ajaran_evaluasi = ?";
+                                    $stmt_check_eval_loop = $conn->prepare($sql_check_eval_loop);
+                                    if ($stmt_check_eval_loop) {
+                                        $stmt_check_eval_loop->bind_param("iiss", $loggedInUserId, $dosen['user_id'], $semester_aktif, $tahun_ajaran_aktif);
+                                        $stmt_check_eval_loop->execute();
+                                        $result_check_eval_loop = $stmt_check_eval_loop->get_result();
+                                        if ($result_check_eval_loop->num_rows > 0) {
+                                            $has_evaluated_periode_ini = true;
+                                        }
+                                        $stmt_check_eval_loop->close();
+                                    } else {
+                                        error_log("DB Error (prepare) mahasiswa_dashboard.php - check eval loop: " . $conn->error);
                                     }
-                                    $stmt_check_eval_loop->close();
                                 }
                                 ?>
                                 <tr>
@@ -250,18 +287,21 @@ $current_page_php_mhs = basename($_SERVER['PHP_SELF']);
                                     <td><?php echo htmlspecialchars($dosen['nidn']); ?></td>
                                     <td><?php echo htmlspecialchars($dosen['full_name']); ?></td>
                                     <td>
-                                        <?php if ($has_evaluated): ?>
+                                        <?php if ($has_evaluated_periode_ini): ?>
                                             <span class="status-done"><i class="fas fa-check-circle"></i> Selesai</span>
                                         <?php else: ?>
                                             <span class="status-pending"><i class="fas fa-exclamation-circle"></i> Belum</span>
                                         <?php endif; ?>
                                     </td>
                                     <td>
-                                        <?php if ($has_evaluated): ?>
+                                        <?php if ($has_evaluated_periode_ini): ?>
                                             <button class="btn-penilaian btn-disabled" disabled>Sudah Dinilai</button>
                                         <?php elseif ($periode_penilaian_berakhir): ?>
                                             <button class="btn-penilaian btn-disabled" disabled
                                                 title="Periode penilaian telah berakhir">Periode Berakhir</button>
+                                        <?php elseif (empty($tahun_ajaran_aktif)): ?>
+                                            <button class="btn-penilaian btn-disabled" disabled
+                                                title="Pengaturan periode tidak lengkap">Evaluasi Ditutup</button>
                                         <?php else: ?>
                                             <a href="penilaian_dosen.php?dosen_id=<?php echo $dosen['user_id']; ?>"
                                                 class="btn-penilaian">Beri Penilaian <i class="fas fa-pen-to-square"></i></a>
@@ -269,6 +309,11 @@ $current_page_php_mhs = basename($_SERVER['PHP_SELF']);
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
+                        <?php elseif (empty($tahun_ajaran_aktif) && $semester_aktif !== "Semester Belum Diatur"): ?>
+                            <tr>
+                                <td colspan="5" style="text-align:center;">Tidak dapat menampilkan daftar dosen karena
+                                    pengaturan periode tidak lengkap.</td>
+                            </tr>
                         <?php else: ?>
                             <tr>
                                 <td colspan="5" style="text-align:center;">Belum ada data dosen yang terdaftar mengajar di
