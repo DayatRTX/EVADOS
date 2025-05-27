@@ -7,18 +7,39 @@ if (session_status() == PHP_SESSION_NONE) {
 require_once 'includes/auth_check_mahasiswa.php';
 require_once 'config/db.php';
 
-// Ambil pengaturan sistem untuk batas waktu
+// Ambil pengaturan sistem untuk batas waktu dan periode aktif
 $batas_akhir_penilaian_str_form = "2099-12-31"; // Default jika tidak ada setting
-$stmt_settings_form = $conn->prepare("SELECT setting_value FROM system_settings WHERE setting_key = 'batas_akhir_penilaian'");
+$semester_evaluasi_aktif_form = "Semester Belum Diatur";
+$tahun_ajaran_evaluasi_aktif_form = "";
+
+$stmt_settings_form = $conn->prepare("SELECT setting_key, setting_value FROM system_settings WHERE setting_key IN ('batas_akhir_penilaian', 'semester_aktif')");
 if ($stmt_settings_form) {
   $stmt_settings_form->execute();
   $result_settings_form = $stmt_settings_form->get_result();
-  if ($row_setting_form = $result_settings_form->fetch_assoc()) {
-    $batas_akhir_penilaian_str_form = $row_setting_form['setting_value'];
+  while ($row_setting_form = $result_settings_form->fetch_assoc()) {
+    if ($row_setting_form['setting_key'] == 'batas_akhir_penilaian') {
+      $batas_akhir_penilaian_str_form = $row_setting_form['setting_value'];
+    } elseif ($row_setting_form['setting_key'] == 'semester_aktif') {
+      $semester_evaluasi_aktif_form = $row_setting_form['setting_value'];
+      // Ekstrak tahun ajaran dari semester_evaluasi_aktif_form
+      if (preg_match('/(\d{4}\/\d{4})/', $semester_evaluasi_aktif_form, $matches_tahun_form)) {
+        $tahun_ajaran_evaluasi_aktif_form = $matches_tahun_form[1];
+      } else {
+        error_log("Format semester_aktif (form penilaian) tidak valid: " . $semester_evaluasi_aktif_form);
+        // Tahun ajaran akan tetap kosong, akan divalidasi di bawah
+      }
+    }
   }
   $stmt_settings_form->close();
 } else {
-  // error_log("Gagal mengambil batas_akhir_penilaian dari system_settings: " . $conn->error);
+  error_log("Gagal mengambil batas_akhir_penilaian/semester_aktif dari system_settings (form penilaian): " . $conn->error);
+}
+
+// Validasi apakah periode dan tahun ajaran berhasil didapatkan dan valid
+if ($semester_evaluasi_aktif_form === "Semester Belum Diatur" || empty($tahun_ajaran_evaluasi_aktif_form)) {
+  $_SESSION['error_message_page'] = "Pengaturan periode evaluasi sistem tidak lengkap atau tidak valid. Tidak dapat melanjutkan penilaian. Hubungi administrator.";
+  header("Location: mahasiswa_dashboard.php");
+  exit();
 }
 
 $tanggal_sekarang_form = new DateTime();
@@ -65,7 +86,7 @@ if (!isset($_GET['dosen_id']) || !is_numeric($_GET['dosen_id'])) {
 }
 $lecturer_id = intval($_GET['dosen_id']);
 
-$sql_lecturer = "SELECT full_name FROM Auth_Users WHERE user_id = ? AND role = 'dosen'"; //
+$sql_lecturer = "SELECT full_name FROM Auth_Users WHERE user_id = ? AND role = 'dosen'";
 $stmt_lecturer = $conn->prepare($sql_lecturer);
 if ($stmt_lecturer) {
   $stmt_lecturer->bind_param("i", $lecturer_id);
@@ -87,14 +108,17 @@ if ($stmt_lecturer) {
   exit();
 }
 
-$sql_check_eval = "SELECT evaluation_id FROM Evaluations WHERE student_user_id = ? AND lecturer_user_id = ?"; //
+// Pengecekan apakah mahasiswa sudah menilai dosen ini PADA PERIODE AKTIF
+$sql_check_eval = "SELECT evaluation_id FROM Evaluations 
+                   WHERE student_user_id = ? AND lecturer_user_id = ?
+                   AND semester_evaluasi = ? AND tahun_ajaran_evaluasi = ?";
 $stmt_check_eval = $conn->prepare($sql_check_eval);
 if ($stmt_check_eval) {
-  $stmt_check_eval->bind_param("ii", $loggedInUserId, $lecturer_id);
+  $stmt_check_eval->bind_param("iiss", $loggedInUserId, $lecturer_id, $semester_evaluasi_aktif_form, $tahun_ajaran_evaluasi_aktif_form);
   $stmt_check_eval->execute();
   $result_check_eval = $stmt_check_eval->get_result();
   if ($result_check_eval->num_rows > 0) {
-    $_SESSION['error_message_page'] = "Anda sudah memberikan penilaian untuk dosen " . htmlspecialchars($lecturer_name) . ".";
+    $_SESSION['error_message_page'] = "Anda sudah memberikan penilaian untuk dosen " . htmlspecialchars($lecturer_name) . " pada periode " . htmlspecialchars($semester_evaluasi_aktif_form) . ".";
     header("Location: mahasiswa_dashboard.php");
     exit();
   }
@@ -150,18 +174,30 @@ $total_all_questions = $total_questions_a + $total_questions_b + $total_question
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
   if (isset($_POST['lecturer_id_hidden']) && $_POST['lecturer_id_hidden'] == $lecturer_id) {
 
-    // PENGECEKAN BATAS WAKTU SAAT SUBMIT
-    // Re-check $periode_penilaian_berakhir_form karena state bisa berubah antara load halaman dan POST
+    // PENGECEKAN BATAS WAKTU SAAT SUBMIT (Re-check, sama seperti di atas)
     $tanggal_sekarang_post = new DateTime();
     $batas_waktu_obj_post = null;
     $periode_berakhir_saat_post = false;
-    if ($batas_akhir_penilaian_str_form !== "2099-12-31" && $batas_akhir_penilaian_str_form !== "Tanggal Belum Diatur") {
+    // Ambil ulang batas_akhir_penilaian_str_form karena state bisa berubah
+    $stmt_settings_post = $conn->prepare("SELECT setting_value FROM system_settings WHERE setting_key = 'batas_akhir_penilaian'");
+    $current_batas_akhir_post = "2099-12-31";
+    if ($stmt_settings_post) {
+      $stmt_settings_post->execute();
+      $result_settings_post = $stmt_settings_post->get_result();
+      if ($row_setting_post = $result_settings_post->fetch_assoc()) {
+        $current_batas_akhir_post = $row_setting_post['setting_value'];
+      }
+      $stmt_settings_post->close();
+    }
+
+    if ($current_batas_akhir_post !== "2099-12-31" && $current_batas_akhir_post !== "Tanggal Belum Diatur") {
       try {
-        $batas_waktu_obj_post = DateTime::createFromFormat('Y-m-d H:i:s', $batas_akhir_penilaian_str_form . ' 23:59:59');
+        $batas_waktu_obj_post = DateTime::createFromFormat('Y-m-d H:i:s', $current_batas_akhir_post . ' 23:59:59');
         if ($batas_waktu_obj_post && $tanggal_sekarang_post > $batas_waktu_obj_post) {
           $periode_berakhir_saat_post = true;
         }
       } catch (Exception $e) {
+        error_log("Error DateTime saat POST batas_akhir_penilaian (form penilaian): " . $e->getMessage());
         $periode_berakhir_saat_post = true; /* Anggap berakhir jika ada error */
       }
     }
@@ -174,15 +210,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
       $all_questions_answered = true;
       $score_map = ['A' => 4, 'B' => 3, 'C' => 2, 'D' => 1];
 
-      for ($i = 1; $i <= $total_questions_a; $i++) {
+      // Initialize scores array
+      for ($i = 1; $i <= $total_questions_a; $i++)
         $scores['q' . $i . '_score'] = null;
-      }
-      for ($i = 1; $i <= $total_questions_b; $i++) {
+      for ($i = 1; $i <= $total_questions_b; $i++)
         $scores['qb' . $i . '_score'] = null;
-      }
-      for ($i = 1; $i <= $total_questions_c; $i++) {
+      for ($i = 1; $i <= $total_questions_c; $i++)
         $scores['qc' . $i . '_score'] = null;
-      }
 
       for ($i = 1; $i <= $total_questions_a; $i++) {
         $post_key = 'pertanyaan_a_' . $i;
@@ -224,22 +258,63 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $error_message = "Harap jawab semua (" . $total_all_questions . ") pertanyaan penilaian dengan memilih A, B, C, atau D.";
       } else {
         $submission_average = ($total_all_questions > 0) ? round($total_score_sum / $total_all_questions, 2) : 0.00;
-        $sql_insert = "INSERT INTO Evaluations (student_user_id, lecturer_user_id, q1_score, q2_score, q3_score, q4_score, q5_score, q6_score, q7_score, q8_score, q9_score, q10_score, q11_score, q12_score, qb1_score, qb2_score, qb3_score, qb4_score, qb5_score, qc1_score, qc2_score, qc3_score, submission_average, comment) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"; //
+
+        // $semester_evaluasi_aktif_form dan $tahun_ajaran_evaluasi_aktif_form sudah diambil di atas
+        $sql_insert = "INSERT INTO Evaluations (
+                            student_user_id, lecturer_user_id, 
+                            semester_evaluasi, tahun_ajaran_evaluasi, 
+                            q1_score, q2_score, q3_score, q4_score, q5_score, q6_score, q7_score, q8_score, q9_score, q10_score, q11_score, q12_score, 
+                            qb1_score, qb2_score, qb3_score, qb4_score, qb5_score, 
+                            qc1_score, qc2_score, qc3_score, 
+                            submission_average, comment
+                       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"; // 26 placeholders
+
         $stmt_insert = $conn->prepare($sql_insert);
         if ($stmt_insert) {
-          $type_string = "iiiiiiiiiiiiiiiiiiiiids"; // 22 'i', 1 'd', 1 's'
-          $stmt_insert->bind_param($type_string, $loggedInUserId, $lecturer_id, $scores['q1_score'], $scores['q2_score'], $scores['q3_score'], $scores['q4_score'], $scores['q5_score'], $scores['q6_score'], $scores['q7_score'], $scores['q8_score'], $scores['q9_score'], $scores['q10_score'], $scores['q11_score'], $scores['q12_score'], $scores['qb1_score'], $scores['qb2_score'], $scores['qb3_score'], $scores['qb4_score'], $scores['qb5_score'], $scores['qc1_score'], $scores['qc2_score'], $scores['qc3_score'], $submission_average, $comment);
+          // Tipe: i i s s i(x20) d s
+          $type_string = "iiss" . str_repeat("i", 20) . "ds";
+
+          $stmt_insert->bind_param(
+            $type_string,
+            $loggedInUserId,
+            $lecturer_id,
+            $semester_evaluasi_aktif_form,
+            $tahun_ajaran_evaluasi_aktif_form,
+            $scores['q1_score'],
+            $scores['q2_score'],
+            $scores['q3_score'],
+            $scores['q4_score'],
+            $scores['q5_score'],
+            $scores['q6_score'],
+            $scores['q7_score'],
+            $scores['q8_score'],
+            $scores['q9_score'],
+            $scores['q10_score'],
+            $scores['q11_score'],
+            $scores['q12_score'],
+            $scores['qb1_score'],
+            $scores['qb2_score'],
+            $scores['qb3_score'],
+            $scores['qb4_score'],
+            $scores['qb5_score'],
+            $scores['qc1_score'],
+            $scores['qc2_score'],
+            $scores['qc3_score'],
+            $submission_average,
+            $comment
+          );
+
           if ($stmt_insert->execute()) {
             $_SESSION['success_message'] = "Penilaian untuk " . htmlspecialchars($lecturer_name) . " berhasil dikirim.";
             header("Location: mahasiswa_dashboard.php");
             exit();
           } else {
-            if ($conn->errno == 1062) {
-              $_SESSION['error_message_page'] = "Anda sudah pernah mengirim penilaian untuk dosen ini.";
+            if ($conn->errno == 1062) { // Error duplicate entry untuk UNIQUE KEY
+              $_SESSION['error_message_page'] = "Anda sudah pernah mengirim penilaian untuk dosen ini pada periode " . htmlspecialchars($semester_evaluasi_aktif_form) . ".";
               header("Location: mahasiswa_dashboard.php");
               exit();
             } else {
-              error_log("DB Execute Error - Inserting evaluation in penilaian_dosen.php: " . $stmt_insert->error);
+              error_log("DB Execute Error - Inserting evaluation in penilaian_dosen.php: " . $stmt_insert->error . " | Query: " . $sql_insert);
               $error_message = "Gagal menyimpan penilaian. Error: " . $stmt_insert->error;
             }
           }
@@ -300,6 +375,8 @@ $js_initial_sidebar_force_closed_penilaian = 'false';
     <main class="main-content" id="mainContent">
       <header class="header">
         <h1>Formulir Penilaian Dosen: <?php echo htmlspecialchars($lecturer_name); ?></h1>
+        <p style="margin-top: 5px; font-size: 0.9em;">Periode Penilaian:
+          <?php echo htmlspecialchars($semester_evaluasi_aktif_form); ?></p>
       </header>
 
       <section class="content-card penilaian-container">
@@ -307,7 +384,6 @@ $js_initial_sidebar_force_closed_penilaian = 'false';
           <p class="error-msg"><?php echo htmlspecialchars($error_message); ?></p>
         <?php endif; ?>
         <?php
-        // Tampilkan juga pesan error dari redirect jika ada (meskipun idealnya sudah di-handle oleh redirect di atas)
         if (isset($_SESSION['error_message_penilaian_redirect'])) {
           echo '<p class="error-msg">' . htmlspecialchars($_SESSION['error_message_penilaian_redirect']) . '</p>';
           unset($_SESSION['error_message_penilaian_redirect']);
