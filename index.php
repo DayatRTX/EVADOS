@@ -4,16 +4,16 @@ session_start();
 
 if (isset($_SESSION['user_id']) && isset($_SESSION['role'])) {
     if ($_SESSION['role'] == 'mahasiswa') {
-        header("Location: mahasiswa_dashboard.php"); //
+        header("Location: mahasiswa/mahasiswa_dashboard.php"); //
         exit();
     } elseif ($_SESSION['role'] == 'dosen') {
-        header("Location: dosen_dashboard.php"); //
+        header("Location: dosen/dosen_dashboard.php"); //
         exit();
     } elseif ($_SESSION['role'] == 'kajur') {
-        header("Location: kajur_dashboard.php"); //
+        header("Location: kajur/kajur_dashboard.php"); //
         exit();
     } elseif ($_SESSION['role'] == 'admin') { // Tambahan untuk Admin
-        header("Location: admin_dashboard.php");
+        header("Location: admin/admin_dashboard.php");
         exit();
     }
 }

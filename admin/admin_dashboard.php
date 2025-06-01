@@ -1,7 +1,7 @@
 <?php
 // evados/admin_dashboard.php
-require_once 'includes/auth_check_admin.php';
-require_once 'config/db.php'; //
+require_once '../includes/auth_check_admin.php';
+require_once '../config/db.php'; //
 
 $js_initial_sidebar_force_closed = 'false';
 if (isset($_SESSION['initial_dashboard_load_sidebar_closed']) && $_SESSION['initial_dashboard_load_sidebar_closed'] === true) {
@@ -100,7 +100,7 @@ if ($result_settings_info) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Admin - Evados</title>
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="../css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         .summary-grid {
@@ -337,7 +337,7 @@ if ($result_settings_info) {
                 </ul>
             </nav>
             <div class="sidebar-logout-section">
-                <a href="logout.php" class="logout-link"><i class="fas fa-sign-out-alt"></i> <span
+                <a href="../logout.php" class="logout-link"><i class="fas fa-sign-out-alt"></i> <span
                         class="menu-text">Logout</span></a>
             </div>
         </aside>
@@ -443,7 +443,7 @@ if ($result_settings_info) {
 
         </main>
     </div>
-    <script src="js/script.js"></script>
+    <script src="../js/script.js"></script>
 </body>
 
 </html>

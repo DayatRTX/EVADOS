@@ -10,8 +10,8 @@ if (isset($_SESSION['initial_dashboard_load_sidebar_closed']) && $_SESSION['init
     unset($_SESSION['initial_dashboard_load_sidebar_closed']);
 }
 
-require_once 'includes/auth_check_mahasiswa.php';
-require_once 'config/db.php';
+require_once '../includes/auth_check_mahasiswa.php';
+require_once '../config/db.php';
 
 // Ambil pengaturan sistem
 $settings_db = [];
@@ -147,7 +147,7 @@ $current_page_php_mhs = basename($_SERVER['PHP_SELF']);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Mahasiswa - Evados</title>
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="../css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script>
         var js_initial_sidebar_force_closed = <?php echo $js_initial_sidebar_force_closed; ?>;
@@ -172,7 +172,7 @@ $current_page_php_mhs = basename($_SERVER['PHP_SELF']);
                 </ul>
             </nav>
             <div class="sidebar-logout-section">
-                <a href="logout.php" class="logout-link"> <i class="fas fa-sign-out-alt"></i>
+                <a href="../logout.php" class="logout-link"> <i class="fas fa-sign-out-alt"></i>
                     <span class="menu-text">Logout</span>
                 </a>
             </div>
@@ -325,7 +325,7 @@ $current_page_php_mhs = basename($_SERVER['PHP_SELF']);
             </section>
         </main>
     </div>
-    <script src="js/script.js"></script>
+    <script src="../js/script.js"></script>
 </body>
 
 </html>
