@@ -5,7 +5,7 @@ if (session_status() == PHP_SESSION_NONE) {
 
 // Cek apakah user sudah login dan rolenya adalah dosen
 if (!isset($_SESSION['user_id']) || !isset($_SESSION['role']) || $_SESSION['role'] !== 'dosen') {
-    $_SESSION['error_message_login'] = "Akses ditolak. Silakan login sebagai Dosen untuk mengakses halaman ini.";
+    $_SESSION['error_message_login'] = "Akses ditolak. Silahkan login sebagai Dosen untuk mengakses halaman ini.";
     header("Location: ../login.php");
     exit();
 }

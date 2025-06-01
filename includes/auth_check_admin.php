@@ -6,7 +6,7 @@ if (session_status() == PHP_SESSION_NONE) {
 
 // Cek apakah user sudah login dan rolenya adalah admin
 if (!isset($_SESSION['user_id']) || !isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
-    $_SESSION['error_message_login'] = "Akses ditolak. Silakan login sebagai Administrator.";
+    $_SESSION['error_message_login'] = "Akses ditolak. Silahkan login sebagai Administrator.";
     header("Location: ../login.php");
     exit();
 }
