@@ -1,4 +1,8 @@
 <?php
+
+if (session_status() == PHP_SESSION_NONE) {
+    session_start();
+}
 // evados/admin_manage_jadwal.php
 require_once '../includes/auth_check_admin.php';
 require_once '../config/db.php'; //
