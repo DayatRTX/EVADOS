@@ -6,7 +6,7 @@ if (session_status() == PHP_SESSION_NONE) {
 // Cek apakah user sudah login dan rolenya adalah kajur
 if (!isset($_SESSION['user_id']) || !isset($_SESSION['role']) || $_SESSION['role'] !== 'kajur') {
     $_SESSION['error_message_login'] = "Akses ditolak. Silakan login sebagai Ketua Jurusan.";
-    header("Location: login.php");
+    header("Location: ../login.php");
     exit();
 }
 
