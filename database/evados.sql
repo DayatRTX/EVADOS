@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 27, 2025 at 07:05 AM
+-- Generation Time: Jun 03, 2025 at 01:42 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -42,30 +42,30 @@ CREATE TABLE `auth_users` (
 --
 
 INSERT INTO `auth_users` (`user_id`, `username`, `email`, `password_hash`, `role`, `full_name`, `is_active`) VALUES
-(1, 'k4mic2023', 'k4mic2023@gmail.com', '$2y$10$S0qjooIzpgIuc.YiM3vP4.ovhpGBk9VtT2bkknqvjfOlQSr8XtxAq', 'mahasiswa', 'Wahyu Wahid Nugroho', 1),
-(2, 'k4mid2023', 'k4mid2023@gmail.com', '$2y$10$S0qjooIzpgIuc.YiM3vP4.ovhpGBk9VtT2bkknqvjfOlQSr8XtxAq', 'mahasiswa', 'Fakhri Irawan', 1),
-(3, NULL, 'dosen.A@example.com', '$2y$10$S0qjooIzpgIuc.YiM3vP4.ovhpGBk9VtT2bkknqvjfOlQSr8XtxAq', 'dosen', 'Nurlaili Rahmi, M.Si.', 1),
-(4, NULL, 'dosen.B@example.com', '$2y$10$S0qjooIzpgIuc.YiM3vP4.ovhpGBk9VtT2bkknqvjfOlQSr8XtxAq', 'dosen', 'Kurniati, M.Kom.', 1),
-(5, NULL, 'dosen.C@example.com', '$2y$10$S0qjooIzpgIuc.YiM3vP4.ovhpGBk9VtT2bkknqvjfOlQSr8XtxAq', 'dosen', 'Egga Asoka, S.Si., M.M.S.I.', 1),
-(6, NULL, 'kajur.mi@example.com', '$2y$10$S0qjooIzpgIuc.YiM3vP4.ovhpGBk9VtT2bkknqvjfOlQSr8XtxAq', 'kajur', 'Sony Oktapriandi,S.Kom.,M.Kom', 1),
-(7, 'wk4mic2023', 'wk4mic2023@example.com', '$2y$10$S0qjooIzpgIuc.YiM3vP4.ovhpGBk9VtT2bkknqvjfOlQSr8XtxAq', 'mahasiswa', 'Mochamad Raechan Albani', 1),
-(8, 'sk14mic2023', 'sk14mic2023@example.com', '$2y$10$S0qjooIzpgIuc.YiM3vP4.ovhpGBk9VtT2bkknqvjfOlQSr8XtxAq', 'mahasiswa', 'Sherli Gusvita Risbar', 1),
-(9, 'sk24mic2023', 'sk24mic2023@example.com', '$2y$10$S0qjooIzpgIuc.YiM3vP4.ovhpGBk9VtT2bkknqvjfOlQSr8XtxAq', 'mahasiswa', 'Zaskia Putri Aulia', 1),
-(10, 'bd14mic2023', 'bd14mic2023@example.com', '$2y$10$S0qjooIzpgIuc.YiM3vP4.ovhpGBk9VtT2bkknqvjfOlQSr8XtxAq', 'mahasiswa', 'Putri Safira', 1),
-(11, 'bd24mic2023', 'bd24mic2023@example.com', '$2y$10$S0qjooIzpgIuc.YiM3vP4.ovhpGBk9VtT2bkknqvjfOlQSr8XtxAq', 'mahasiswa', 'Feni Febriyani', 1),
-(12, 'sk4mid2023', 'sk4mid2023@example.com', '$2y$10$S0qjooIzpgIuc.YiM3vP4.ovhpGBk9VtT2bkknqvjfOlQSr8XtxAq', 'mahasiswa', 'Nyayu Dia Khairunnisa', 1),
-(13, 'bd4mid2023', 'bd4mid2023@example.com', '$2y$10$S0qjooIzpgIuc.YiM3vP4.ovhpGBk9VtT2bkknqvjfOlQSr8XtxAq', 'mahasiswa', 'Destiarana Putri', 1),
-(14, NULL, 'dosen.D@example.com', '$2y$10$S0qjooIzpgIuc.YiM3vP4.ovhpGBk9VtT2bkknqvjfOlQSr8XtxAq', 'dosen', 'Dr. Hetty Meileni, S.Kom., M.T.', 1),
-(15, NULL, 'dosen.E@example.com', '$2y$10$S0qjooIzpgIuc.YiM3vP4.ovhpGBk9VtT2bkknqvjfOlQSr8XtxAq', 'dosen', 'Deri Darfin, S.Sos., M.Si.', 1),
-(16, NULL, 'dosen.F@example.com', '$2y$10$S0qjooIzpgIuc.YiM3vP4.ovhpGBk9VtT2bkknqvjfOlQSr8XtxAq', 'dosen', 'Leni Novianti, S.Kom., M.Kom.', 1),
-(17, NULL, 'dosen.G@example.com', '$2y$10$S0qjooIzpgIuc.YiM3vP4.ovhpGBk9VtT2bkknqvjfOlQSr8XtxAq', 'dosen', 'Ferizka Tiara Devani, M.T.I.', 1),
-(18, NULL, 'dosen.H@example.com', '$2y$10$S0qjooIzpgIuc.YiM3vP4.ovhpGBk9VtT2bkknqvjfOlQSr8XtxAq', 'dosen', 'Andre Mariza Putra, S.Kom., M.Kom.', 1),
-(19, NULL, 'dosen.I@example.com', '$2y$10$S0qjooIzpgIuc.YiM3vP4.ovhpGBk9VtT2bkknqvjfOlQSr8XtxAq', 'dosen', 'M. Zulkarnain, S.E., M.Si.', 1),
-(20, NULL, 'dosen.J@example.com', '$2y$10$S0qjooIzpgIuc.YiM3vP4.ovhpGBk9VtT2bkknqvjfOlQSr8XtxAq', 'dosen', 'M. Arief Rahman, S.E., M.M.', 1),
-(21, NULL, 'dosen.K@example.com', '$2y$10$S0qjooIzpgIuc.YiM3vP4.ovhpGBk9VtT2bkknqvjfOlQSr8XtxAq', 'dosen', 'Yulia Hapsari, M.Kom.', 1),
-(22, NULL, 'dosen.L@example.com', '$2y$10$S0qjooIzpgIuc.YiM3vP4.ovhpGBk9VtT2bkknqvjfOlQSr8XtxAq', 'dosen', 'Aurantia Marina, S.P., M.M.', 1),
-(23, NULL, 'dosen.M@example.com', '$2y$10$S0qjooIzpgIuc.YiM3vP4.ovhpGBk9VtT2bkknqvjfOlQSr8XtxAq', 'dosen', 'Rika Sadariawati, S.Si., M.Si.', 1),
-(25, NULL, 'admin@evados.com', '$2y$10$S0qjooIzpgIuc.YiM3vP4.ovhpGBk9VtT2bkknqvjfOlQSr8XtxAq', 'admin', 'Administrator Sistem', 1);
+(1, 'k4mic2023', 'k4mic2023@gmail.com', '$2y$10$dvV0WcJn8e0dJLtl9nn/pue2gzTTJdXDpQcdWKlQ/VteMGEfdYW8i', 'mahasiswa', 'Wahyu Wahid Nugroho', 1),
+(2, 'k4mid2023', 'k4mid2023@gmail.com', '$2y$10$dvV0WcJn8e0dJLtl9nn/pue2gzTTJdXDpQcdWKlQ/VteMGEfdYW8i', 'mahasiswa', 'Fakhri Irawan', 1),
+(3, NULL, 'nurlaili@contoh.com', '$2y$10$dvV0WcJn8e0dJLtl9nn/pue2gzTTJdXDpQcdWKlQ/VteMGEfdYW8i', 'dosen', 'Nurlaili Rahmi, M.Si.', 1),
+(4, NULL, 'kurniati@contoh.com', '$2y$10$dvV0WcJn8e0dJLtl9nn/pue2gzTTJdXDpQcdWKlQ/VteMGEfdYW8i', 'dosen', 'Kurniati, M.Kom.', 1),
+(5, NULL, 'egga@contoh.com', '$2y$10$dvV0WcJn8e0dJLtl9nn/pue2gzTTJdXDpQcdWKlQ/VteMGEfdYW8i', 'dosen', 'Egga Asoka, S.Si., M.M.S.I.', 1),
+(6, NULL, 'kajur.mi@example.com', '$2y$10$dvV0WcJn8e0dJLtl9nn/pue2gzTTJdXDpQcdWKlQ/VteMGEfdYW8i', 'kajur', 'Sony Oktapriandi,S.Kom.,M.Kom', 1),
+(7, 'wk4mic2023', 'wk4mic2023@example.com', '$2y$10$dvV0WcJn8e0dJLtl9nn/pue2gzTTJdXDpQcdWKlQ/VteMGEfdYW8i', 'mahasiswa', 'Mochamad Raechan Albani', 1),
+(8, 'sk14mic2023', 'sk14mic2023@example.com', '$2y$10$dvV0WcJn8e0dJLtl9nn/pue2gzTTJdXDpQcdWKlQ/VteMGEfdYW8i', 'mahasiswa', 'Sherli Gusvita Risbar', 1),
+(9, 'sk24mic2023', 'sk24mic2023@example.com', '$2y$10$dvV0WcJn8e0dJLtl9nn/pue2gzTTJdXDpQcdWKlQ/VteMGEfdYW8i', 'mahasiswa', 'Zaskia Putri Aulia', 1),
+(10, 'bd14mic2023', 'bd14mic2023@example.com', '$2y$10$dvV0WcJn8e0dJLtl9nn/pue2gzTTJdXDpQcdWKlQ/VteMGEfdYW8i', 'mahasiswa', 'Putri Safira', 1),
+(11, 'bd24mic2023', 'bd24mic2023@example.com', '$2y$10$dvV0WcJn8e0dJLtl9nn/pue2gzTTJdXDpQcdWKlQ/VteMGEfdYW8i', 'mahasiswa', 'Feni Febriyani', 1),
+(12, 'sk4mid2023', 'sk4mid2023@example.com', '$2y$10$dvV0WcJn8e0dJLtl9nn/pue2gzTTJdXDpQcdWKlQ/VteMGEfdYW8i', 'mahasiswa', 'Nyayu Dia Khairunnisa', 1),
+(13, 'bd4mid2023', 'bd4mid2023@example.com', '$2y$10$dvV0WcJn8e0dJLtl9nn/pue2gzTTJdXDpQcdWKlQ/VteMGEfdYW8i', 'mahasiswa', 'Destiarana Putri', 1),
+(14, NULL, 'hetty@contoh.com', '$2y$10$dvV0WcJn8e0dJLtl9nn/pue2gzTTJdXDpQcdWKlQ/VteMGEfdYW8i', 'dosen', 'Dr. Hetty Meileni, S.Kom., M.T.', 1),
+(15, NULL, 'deri@contoh.com', '$2y$10$dvV0WcJn8e0dJLtl9nn/pue2gzTTJdXDpQcdWKlQ/VteMGEfdYW8i', 'dosen', 'Deri Darfin, S.Sos., M.Si.', 1),
+(16, NULL, 'leni@contoh.com', '$2y$10$dvV0WcJn8e0dJLtl9nn/pue2gzTTJdXDpQcdWKlQ/VteMGEfdYW8i', 'dosen', 'Leni Novianti, S.Kom., M.Kom.', 1),
+(17, NULL, 'ferizka@contoh.com', '$2y$10$dvV0WcJn8e0dJLtl9nn/pue2gzTTJdXDpQcdWKlQ/VteMGEfdYW8i', 'dosen', 'Ferizka Tiara Devani, M.T.I.', 1),
+(18, NULL, 'andre@contoh.com', '$2y$10$dvV0WcJn8e0dJLtl9nn/pue2gzTTJdXDpQcdWKlQ/VteMGEfdYW8i', 'dosen', 'Andre Mariza Putra, S.Kom., M.Kom.', 1),
+(19, NULL, 'zulkarnain@contoh.com', '$2y$10$dvV0WcJn8e0dJLtl9nn/pue2gzTTJdXDpQcdWKlQ/VteMGEfdYW8i', 'dosen', 'M. Zulkarnain, S.E., M.Si.', 1),
+(20, NULL, 'arief@contoh.com', '$2y$10$dvV0WcJn8e0dJLtl9nn/pue2gzTTJdXDpQcdWKlQ/VteMGEfdYW8i', 'dosen', 'M. Arief Rahman, S.E., M.M.', 1),
+(21, NULL, 'yulia@contoh.com', '$2y$10$dvV0WcJn8e0dJLtl9nn/pue2gzTTJdXDpQcdWKlQ/VteMGEfdYW8i', 'dosen', 'Yulia Hapsari, M.Kom.', 1),
+(22, NULL, 'aurantina@contoh.com', '$2y$10$dvV0WcJn8e0dJLtl9nn/pue2gzTTJdXDpQcdWKlQ/VteMGEfdYW8i', 'dosen', 'Aurantia Marina, S.P., M.M.', 1),
+(23, NULL, 'rika@contoh.com', '$2y$10$dvV0WcJn8e0dJLtl9nn/pue2gzTTJdXDpQcdWKlQ/VteMGEfdYW8i', 'dosen', 'Rika Sadariawati, S.Si., M.Si.', 1),
+(25, NULL, 'admin@evados.com', '$2y$10$dvV0WcJn8e0dJLtl9nn/pue2gzTTJdXDpQcdWKlQ/VteMGEfdYW8i', 'admin', 'Administrator Sistem', 1);
 
 -- --------------------------------------------------------
 
@@ -257,7 +257,7 @@ INSERT INTO `mata_kuliah` (`mk_id`, `kode_mk`, `nama_mk`) VALUES
 (8, 'PSIG408', 'Praktikum Sistem Informasi Geografis'),
 (9, 'KW409', 'Kewirausahaan'),
 (10, 'DW410', 'Praktikum Desain dan Pemrograman Web'),
-(11, 'AK401', 'Akuntansi'),
+(11, 'AK411', 'Akuntansi'),
 (12, 'PAK412', 'Praktikum Akuntansi');
 
 -- --------------------------------------------------------
