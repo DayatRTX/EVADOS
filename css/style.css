@@ -10,7 +10,7 @@
 }
 
 body {
-  font-family: "Arial", sans-serif;
+  font-family: "Poppins", sans-serif;
   margin: 0;
   background-color: var(--background-color);
   color: var(--text-color);
@@ -81,6 +81,7 @@ body.preload-no-transitions .main-content {
   border-radius: 6px;
   box-sizing: border-box;
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  font-family: "Poppins", sans-serif;
 }
 
 .input-group input:focus,
@@ -101,6 +102,7 @@ body.preload-no-transitions .main-content {
   font-weight: bold;
   width: 100%;
   transition: background-color 0.3s ease, transform 0.2s ease;
+  font-family: "Poppins", sans-serif;
 }
 
 .btn-login:hover {
@@ -392,6 +394,7 @@ body.preload-no-transitions .main-content {
   text-decoration: none;
   transition: background-color 0.3s ease;
   font-size: 0.9em;
+  font-family: "Poppins", sans-serif;
 }
 
 .btn-penilaian:hover {
@@ -452,6 +455,7 @@ body.preload-no-transitions .main-content {
   min-height: 100px;
   resize: vertical;
   margin-top: 10px;
+  font-family: "Poppins", sans-serif;
 }
 
 .komentar-section textarea:focus {
@@ -475,6 +479,7 @@ body.preload-no-transitions .main-content {
   margin-left: auto;
   margin-right: auto;
   transition: background-color 0.3s ease, transform 0.2s ease;
+  font-family: "Poppins", sans-serif;
 }
 
 .btn-kirim-penilaian:hover {
@@ -676,6 +681,7 @@ body.preload-no-transitions .main-content {
   border: 1px solid #ddd;
   border-radius: 4px;
   box-sizing: border-box;
+  font-family: "Poppins", sans-serif;
 }
 
 .form-container .input-group textarea {

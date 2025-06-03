@@ -342,6 +342,7 @@ $js_initial_sidebar_force_closed_penilaian = 'false';
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Formulir Penilaian: <?php echo htmlspecialchars($lecturer_name); ?> - Evados</title>
   <link rel="icon" href="../logo.png" type="image/png" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../css/style.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <script>
@@ -362,8 +363,7 @@ $js_initial_sidebar_force_closed_penilaian = 'false';
       </div>
       <nav class="sidebar-menu">
         <ul>
-          <li><a href="mahasiswa_dashboard.php"><i class="fas fa-arrow-left"></i> <span class="menu-text">Kembali ke
-                Dashboard</span></a></li>
+          <li><a href="mahasiswa_dashboard.php"><i class="fas fa-arrow-left"></i> <span class="menu-text">Kembali</span></a></li>
         </ul>
       </nav>
       <div class="sidebar-logout-section">
@@ -376,9 +376,6 @@ $js_initial_sidebar_force_closed_penilaian = 'false';
     <main class="main-content" id="mainContent">
       <header class="header">
         <h1>Formulir Penilaian Dosen: <?php echo htmlspecialchars($lecturer_name); ?></h1>
-        <p style="margin-top: 5px; font-size: 0.9em;">Periode Penilaian:
-          <?php echo htmlspecialchars($semester_evaluasi_aktif_form); ?>
-        </p>
       </header>
 
       <section class="content-card penilaian-container">
