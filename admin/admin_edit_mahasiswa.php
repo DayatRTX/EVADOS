@@ -278,46 +278,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && (isset($_POST['add_mahasiswa']) || i
             <?php endif; ?>
         });
     </script>
-    <style>
-        .input-group {
-            margin-bottom: 18px;
-        }
-
-        .form-actions {
-            margin-top: 25px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
-        /* CSS untuk toggle password (sama seperti di style.css atau admin_edit_user.php) */
-        .input-group .password-wrapper {
-            position: relative;
-            display: flex;
-            align-items: center;
-        }
-
-        .input-group .password-wrapper input[type="password"],
-        .input-group .password-wrapper input[type="text"] {
-            padding-right: 40px;
-            width: 100%;
-            box-sizing: border-box;
-        }
-
-        .toggle-password {
-            position: absolute;
-            right: 10px;
-            top: 50%;
-            transform: translateY(-50%);
-            cursor: pointer;
-            color: #757575;
-            z-index: 2;
-        }
-
-        .toggle-password:hover {
-            color: var(--primary-color);
-        }
-    </style>
 </head>
 
 <body>

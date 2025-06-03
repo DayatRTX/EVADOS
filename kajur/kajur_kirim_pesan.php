@@ -71,14 +71,6 @@ $current_page = basename($_SERVER['PHP_SELF']);
     <script>
         var js_initial_sidebar_force_closed = <?php echo $js_force_sidebar_closed; ?>;
     </script>
-    <style>
-        .form-container {
-            max-width: 700px;
-            margin: 0 auto;
-        }
-
-        /* Agar form di tengah jika content-card lebih lebar */
-    </style>
 </head>
 
 <body>

@@ -15,8 +15,8 @@ $jadwal_data = [
     'dosen_user_id' => '',
     'mk_id' => '',
     'nama_kelas' => '',
-    'semester' => '',
-    'tahun_ajaran' => ''
+    'semester' => '', // Ini akan menampung tipe semester ("Ganjil"/"Genap") untuk form
+    'tahun_ajaran' => '' // Ini akan menampung tahun ajaran untuk form
 ];
 $is_editing = false;
 $jadwal_id_to_edit = null;
@@ -69,7 +69,21 @@ if (isset($_GET['jadwal_id']) && is_numeric($_GET['jadwal_id'])) {
         $result_fetch = $stmt_fetch->get_result();
         if ($result_fetch->num_rows == 1) {
             $db_data = $result_fetch->fetch_assoc();
+
+            // --- MODIFIKASI SAAT EDIT: Parse semester dari DB untuk form ---
+            $full_semester_from_db = $db_data['semester']; // Misal "Genap 2024/2025"
+            if (preg_match('/^(Ganjil|Genap)\s*(\d{4}\/\d{4})?$/i', $full_semester_from_db, $matches_db_sem)) {
+                // Set $db_data['semester'] ke tipe semester saja untuk dropdown form
+                $db_data['semester'] = ucfirst(strtolower(trim($matches_db_sem[1]))); // Hasil: "Genap"
+                // $db_data['tahun_ajaran'] sudah seharusnya "YYYY/YYYY" dari DB
+            } else {
+                // Jika format tidak terduga, biarkan apa adanya, tapi dropdown mungkin tidak terpilih
+                // Atau set default jika perlu
+                // error_log("Format semester dari DB tidak terduga saat edit jadwal: " . $full_semester_from_db);
+            }
+            // --- AKHIR MODIFIKASI SAAT EDIT ---
             $jadwal_data = array_merge($jadwal_data, $db_data);
+
         } else {
             $_SESSION['error_message_jadwal_manage'] = "Data jadwal tidak ditemukan.";
             header("Location: admin_manage_jadwal.php");
@@ -94,16 +108,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && (isset($_POST['add_jadwal']) || isse
     $dosen_user_id = $_POST['dosen_user_id'];
     $mk_id = $_POST['mk_id'];
     $nama_kelas = trim($_POST['nama_kelas']);
-    $semester = trim($_POST['semester']); // Ganjil, Genap
-    $tahun_ajaran = trim($_POST['tahun_ajaran']); // YYYY/YYYY
+    $semester_tipe_input = trim($_POST['semester']); // Akan berisi "Ganjil" atau "Genap" dari form
+    $tahun_ajaran_input = trim($_POST['tahun_ajaran']); // Akan berisi "YYYY/YYYY" dari form
+
+    // --- MODIFIKASI: Buat format semester untuk disimpan ke DB ---
+    $semester_for_database = "";
+    if (!empty($semester_tipe_input) && !empty($tahun_ajaran_input) && preg_match("/^\d{4}\/\d{4}$/", $tahun_ajaran_input) && in_array($semester_tipe_input, ['Ganjil', 'Genap'])) {
+        $semester_for_database = $semester_tipe_input . " " . $tahun_ajaran_input; // Contoh: "Genap 2024/2025"
+    }
+    // --- AKHIR MODIFIKASI ---
 
     // Update $jadwal_data untuk repopulate form jika ada error
+    // Form tetap membutuhkan $semester_tipe_input dan $tahun_ajaran_input secara terpisah
     $temp_jadwal_data = $jadwal_data;
     $temp_jadwal_data['dosen_user_id'] = $dosen_user_id;
     $temp_jadwal_data['mk_id'] = $mk_id;
     $temp_jadwal_data['nama_kelas'] = $nama_kelas;
-    $temp_jadwal_data['semester'] = $semester;
-    $temp_jadwal_data['tahun_ajaran'] = $tahun_ajaran;
+    $temp_jadwal_data['semester'] = $semester_tipe_input; // Untuk repopulate dropdown semester
+    $temp_jadwal_data['tahun_ajaran'] = $tahun_ajaran_input; // Untuk repopulate input tahun ajaran
     $jadwal_data = $temp_jadwal_data;
 
 
@@ -114,17 +136,25 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && (isset($_POST['add_jadwal']) || isse
         $validation_errors[] = "Mata Kuliah wajib dipilih.";
     if (empty($nama_kelas))
         $validation_errors[] = "Nama Kelas wajib diisi.";
-    if (empty($semester) || !in_array($semester, ['Ganjil', 'Genap']))
+    if (empty($semester_tipe_input) || !in_array($semester_tipe_input, ['Ganjil', 'Genap'])) // Validasi input semester tipe
         $validation_errors[] = "Semester wajib diisi (Ganjil/Genap).";
-    if (empty($tahun_ajaran) || !preg_match("/^\d{4}\/\d{4}$/", $tahun_ajaran))
+    if (empty($tahun_ajaran_input) || !preg_match("/^\d{4}\/\d{4}$/", $tahun_ajaran_input)) // Validasi input tahun ajaran
         $validation_errors[] = "Tahun Ajaran wajib diisi dengan format YYYY/YYYY (misal: 2023/2024).";
+
+    // Validasi tambahan untuk $semester_for_database jika belum ada error sebelumnya
+    if (empty($semester_for_database) && empty($validation_errors)) {
+        $validation_errors[] = "Gagal membentuk format semester yang valid dari input yang diberikan.";
+    }
+
 
     if (!empty($validation_errors)) {
         $error_message = implode("<br>", $validation_errors);
     } else {
-        // Cek duplikasi (Dosen, MK, Kelas, Semester, Tahun Ajaran yang sama)
+        // Cek duplikasi (Dosen, MK, Kelas, Semester (yang sudah digabung), Tahun Ajaran yang sama)
+        // Kolom `semester` di DB akan menyimpan $semester_for_database
+        // Kolom `tahun_ajaran` di DB akan menyimpan $tahun_ajaran_input
         $check_duplicate_sql = "SELECT jadwal_id FROM jadwal_mengajar WHERE dosen_user_id = ? AND mk_id = ? AND nama_kelas = ? AND semester = ? AND tahun_ajaran = ?";
-        $params_check_duplicate = [$dosen_user_id, $mk_id, $nama_kelas, $semester, $tahun_ajaran];
+        $params_check_duplicate = [$dosen_user_id, $mk_id, $nama_kelas, $semester_for_database, $tahun_ajaran_input];
         $types_check_duplicate = "iisss";
         if ($is_editing) {
             $check_duplicate_sql .= " AND jadwal_id != ?";
@@ -137,15 +167,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && (isset($_POST['add_jadwal']) || isse
             $stmt_check_duplicate->execute();
             $result_check_duplicate = $stmt_check_duplicate->get_result();
             if ($result_check_duplicate->num_rows > 0) {
-                $error_message = "Jadwal yang sama (Dosen, Mata Kuliah, Kelas, Semester, Tahun Ajaran) sudah ada.";
+                $error_message = "Jadwal yang sama (Dosen, Mata Kuliah, Kelas, Periode Semester & Tahun) sudah ada.";
             } else {
                 if ($is_editing) {
                     $sql_upsert = "UPDATE jadwal_mengajar SET dosen_user_id = ?, mk_id = ?, nama_kelas = ?, semester = ?, tahun_ajaran = ? WHERE jadwal_id = ?";
-                    $params_upsert = [$dosen_user_id, $mk_id, $nama_kelas, $semester, $tahun_ajaran, $jadwal_id_to_edit];
+                    $params_upsert = [$dosen_user_id, $mk_id, $nama_kelas, $semester_for_database, $tahun_ajaran_input, $jadwal_id_to_edit];
                     $types_upsert = "iisssi";
                 } else {
                     $sql_upsert = "INSERT INTO jadwal_mengajar (dosen_user_id, mk_id, nama_kelas, semester, tahun_ajaran) VALUES (?, ?, ?, ?, ?)";
-                    $params_upsert = [$dosen_user_id, $mk_id, $nama_kelas, $semester, $tahun_ajaran];
+                    $params_upsert = [$dosen_user_id, $mk_id, $nama_kelas, $semester_for_database, $tahun_ajaran_input];
                     $types_upsert = "iisss";
                 }
 
@@ -159,18 +189,30 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && (isset($_POST['add_jadwal']) || isse
                         $success_message = "Data jadwal berhasil " . ($is_editing ? "diperbarui." : "ditambahkan (ID Jadwal: $new_jadwal_id).");
 
                         if ($is_new_jadwal_submission) {
-                            $jadwal_data = array_fill_keys(array_keys($jadwal_data), ''); // Reset form
-                            $jadwal_data['jadwal_id'] = null;
+                            // Reset $jadwal_data agar form kembali kosong untuk input baru
+                            $jadwal_data = [
+                                'jadwal_id' => null,
+                                'dosen_user_id' => '',
+                                'mk_id' => '',
+                                'nama_kelas' => '',
+                                'semester' => '',
+                                'tahun_ajaran' => ''
+                            ];
                         } elseif ($is_editing) {
-                            // Re-fetch data setelah update
+                            // Re-fetch data setelah update untuk memastikan $jadwal_data (untuk form) terisi benar
                             $stmt_refresh_jadwal = $conn->prepare("SELECT jadwal_id, dosen_user_id, mk_id, nama_kelas, semester, tahun_ajaran FROM jadwal_mengajar WHERE jadwal_id = ?");
                             if ($stmt_refresh_jadwal) {
                                 $stmt_refresh_jadwal->bind_param("i", $jadwal_id_to_edit);
                                 $stmt_refresh_jadwal->execute();
                                 $res_refresh = $stmt_refresh_jadwal->get_result();
                                 if ($res_refresh->num_rows == 1) {
-                                    $default_jadwal_data = ['jadwal_id' => null, 'dosen_user_id' => '', 'mk_id' => '', 'nama_kelas' => '', 'semester' => '', 'tahun_ajaran' => ''];
-                                    $jadwal_data = array_merge($default_jadwal_data, $res_refresh->fetch_assoc());
+                                    $db_data_refreshed = $res_refresh->fetch_assoc();
+                                    // Parse lagi untuk form display
+                                    $full_semester_refreshed = $db_data_refreshed['semester'];
+                                    if (preg_match('/^(Ganjil|Genap)\s*(\d{4}\/\d{4})?$/i', $full_semester_refreshed, $matches_refreshed)) {
+                                        $db_data_refreshed['semester'] = ucfirst(strtolower(trim($matches_refreshed[1])));
+                                    }
+                                    $jadwal_data = array_merge($jadwal_data, $db_data_refreshed);
                                 }
                                 $stmt_refresh_jadwal->close();
                             }
@@ -196,39 +238,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && (isset($_POST['add_jadwal']) || isse
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars($page_title); ?> - Evados</title>
     <link rel="icon" href="../logo.png" type="image/png" />
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="../css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script>
         var js_initial_sidebar_force_closed = <?php echo $js_initial_sidebar_force_closed; ?>;
     </script>
-    <style>
-        .input-group {
-            margin-bottom: 18px;
-        }
-
-        .input-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
-
-        .input-group select,
-        .input-group input[type="text"] {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            box-sizing: border-box;
-        }
-
-        .form-actions {
-            margin-top: 25px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-    </style>
 </head>
 
 <body>

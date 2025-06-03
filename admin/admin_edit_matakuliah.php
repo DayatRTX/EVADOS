@@ -155,18 +155,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && (isset($_POST['add_matakuliah']) || 
     <script>
         var js_initial_sidebar_force_closed = <?php echo $js_initial_sidebar_force_closed; ?>;
     </script>
-    <style>
-        .input-group {
-            margin-bottom: 18px;
-        }
-
-        .form-actions {
-            margin-top: 25px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-    </style>
 </head>
 
 <body>

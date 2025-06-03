@@ -7,6 +7,8 @@
   --text-color: #333;
   --white-color: #fff;
   --shadow-color: rgba(0, 0, 0, 0.1);
+  --error-color: #f8d7da; /* Digunakan untuk background tombol hapus di beberapa tempat */
+  --input-border-color: #ccc; /* Variabel untuk border input filter, jika diperlukan */
 }
 
 body {
@@ -62,7 +64,7 @@ body.preload-no-transitions .main-content {
 }
 
 .input-group {
-  margin-bottom: 20px;
+  margin-bottom: 20px; /* Default, bisa di-override jika perlu */
   text-align: left;
 }
 
@@ -74,7 +76,9 @@ body.preload-no-transitions .main-content {
 }
 
 .input-group input,
-.input-group select {
+.input-group select,
+.input-group textarea {
+  /* Ditambahkan textarea */
   width: 100%;
   padding: 12px;
   border: 1px solid var(--tertiary-color);
@@ -85,7 +89,9 @@ body.preload-no-transitions .main-content {
 }
 
 .input-group input:focus,
-.input-group select:focus {
+.input-group select:focus,
+.input-group textarea:focus {
+  /* Ditambahkan textarea */
   border-color: var(--primary-color);
   box-shadow: 0 0 5px var(--tertiary-color);
   outline: none;
@@ -208,6 +214,7 @@ body.preload-no-transitions .main-content {
   white-space: nowrap;
   overflow: hidden;
   height: 44px;
+  position: relative; /* Untuk notification dot */
 }
 .sidebar:not(.collapsed) .sidebar-menu li a,
 .sidebar:not(.collapsed) .logout-link {
@@ -231,6 +238,7 @@ body.preload-no-transitions .main-content {
   justify-content: center;
   font-size: 1.2em;
   flex-shrink: 0;
+  transition: transform 0.3s ease;
 }
 
 .sidebar-menu li a .menu-text,
@@ -240,8 +248,6 @@ body.preload-no-transitions .main-content {
   opacity: 1;
   transition: opacity 0.2s ease-in-out 0.05s, padding 0.2s ease-in-out 0.05s,
     width 0.2s ease-in-out 0.05s;
-  /* font-size dan font-weight diwariskan, atau bisa diset eksplisit jika ingin semua teks menu sama persis */
-  /* contoh: font-size: 1.1em; font-weight: 500; */
 }
 
 .sidebar.collapsed .sidebar-menu li a .menu-text,
@@ -260,6 +266,11 @@ body.preload-no-transitions .main-content {
 .sidebar-menu li a.active {
   background-color: var(--primary-color);
   font-weight: bold;
+}
+
+.sidebar-menu li a:hover i,
+.logout-link:hover i {
+  transform: rotate(5deg) scale(1.1);
 }
 
 .sidebar-logout-section {
@@ -316,6 +327,11 @@ body.preload-no-transitions .main-content {
   border-bottom: 2px solid var(--tertiary-color);
   padding-bottom: 10px;
 }
+.content-card h2 .fas, /* Untuk ikon di judul content-card */
+.content-card h2 .fa {
+  margin-right: 10px;
+  color: var(--primary-color);
+}
 
 .info-box {
   background-color: var(--white-color);
@@ -344,6 +360,7 @@ body.preload-no-transitions .main-content {
 }
 
 .dosen-table {
+  /* Digunakan juga untuk tabel mahasiswa, dosen, user, jadwal, matakuliah di admin */
   width: 100%;
   border-collapse: collapse;
   margin-top: 20px;
@@ -383,6 +400,15 @@ body.preload-no-transitions .main-content {
 .status-pending .fas {
   margin-right: 5px;
 }
+/* Status untuk admin_manage_users.php */
+.status-aktif {
+  color: green;
+  font-weight: bold;
+}
+.status-tidak-aktif {
+  color: red;
+  font-weight: bold;
+}
 
 .btn-penilaian {
   background-color: var(--primary-color);
@@ -405,6 +431,17 @@ body.preload-no-transitions .main-content {
   background-color: #ccc !important;
   cursor: not-allowed !important;
   opacity: 0.7 !important;
+}
+.btn-penilaian .btn-delete-icon {
+  /* Untuk ikon hapus di tombol */
+  color: var(
+    --white-color
+  ); /* Default putih agar kontras dengan background tombol utama */
+}
+.btn-penilaian[style*="var(--error-color)"] .btn-delete-icon, /* Jika inline style error color */
+.btn-penilaian.error-bg .btn-delete-icon {
+  /* Jika ada kelas khusus */
+  color: grey; /* atau var(--text-color) agar lebih dinamis */
 }
 
 .penilaian-container {
@@ -521,10 +558,11 @@ body.preload-no-transitions .main-content {
   margin-bottom: 20px;
 }
 .summary-card {
+  /* Untuk Kajur Dashboard */
   background-color: var(--white-color);
   padding: 20px;
   border-radius: 8px;
-  box-shadow: var(--shadow-color);
+  box-shadow: 0 2px 4px var(--shadow-color); /* Konsistenkan shadow */
   border-left: 5px solid var(--primary-color);
 }
 .summary-card h4 {
@@ -571,7 +609,7 @@ body.preload-no-transitions .main-content {
   width: 120px;
 }
 
-/* Untuk Halaman Komentar & Riwayat Pesan */
+/* Untuk Halaman Komentar & Riwayat Pesan & Notifikasi */
 .comment-list,
 .message-list,
 .notification-list {
@@ -582,9 +620,6 @@ body.preload-no-transitions .main-content {
 .comment-item,
 .message-item,
 .notification-item {
-  background-color: var(
-    --white-color
-  ); /* Default putih untuk item pesan/notif */
   border: 1px solid var(--tertiary-color);
   padding: 15px;
   margin-bottom: 15px;
@@ -592,13 +627,18 @@ body.preload-no-transitions .main-content {
   box-shadow: 0 1px 3px var(--shadow-color);
 }
 .comment-item {
-  /* Khusus comment-item jika perlu beda latar */
   background-color: var(--background-color);
+}
+.message-item,
+.notification-item {
+  background-color: var(--white-color);
 }
 
 .notification-item.unread-notif {
   border-left: 5px solid var(--primary-color);
-  background-color: var(--background-color);
+  background-color: var(
+    --background-color
+  ); /* Atau var(--tertiary-color) untuk sedikit beda */
 }
 .message-item h4,
 .notification-item h4 {
@@ -606,11 +646,11 @@ body.preload-no-transitions .main-content {
   margin-bottom: 5px;
   color: var(--primary-color);
 }
-.comment-date, /* Digabung karena mirip */
+.comment-date,
 .message-item .date,
 .notification-item .date {
   font-size: 0.8em;
-  color: #888; /* Warna lebih konsisten */
+  color: #888;
   margin-bottom: 10px;
   display: block;
 }
@@ -657,42 +697,47 @@ body.preload-no-transitions .main-content {
   margin-left: 5px;
 }
 
-/* Untuk Form Kirim Pesan Kajur */
+/* Untuk Form Kirim Pesan Kajur & Form Edit Admin */
 .form-container {
-  max-width: 700px;
+  max-width: 700px; /* Default, bisa di-override di halaman spesifik jika perlu lebih kecil */
   margin: 0 auto;
 }
-
-/* --- Form input styling for consistent width --- */
 .form-container .input-group {
   margin-bottom: 15px;
-}
-
+} /* Sedikit lebih rapat dari default .input-group */
 .form-container .input-group label {
-  display: block;
   margin-bottom: 5px;
 }
-
 .form-container .input-group input,
 .form-container .input-group select,
 .form-container .input-group textarea {
   width: 100%;
-  padding: 8px;
-  border: 1px solid #ddd;
+  padding: 10px; /* Sedikit lebih kecil dari default .input-group input */
+  border: 1px solid #ddd; /* Konsistenkan border */
   border-radius: 4px;
   box-sizing: border-box;
   font-family: "Poppins", sans-serif;
 }
-
 .form-container .input-group textarea {
   resize: vertical;
   min-height: 120px;
 }
+.form-actions {
+  /* Untuk grup tombol di form edit admin */
+  margin-top: 25px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center; /* Agar tombol sejajar jika tingginya beda */
+}
+.form-actions .btn-login,
+.form-actions .btn-penilaian {
+  /* Agar tombol di form-actions tidak full width */
+  width: auto;
+  margin-bottom: 0; /* Hapus margin bottom jika ada dari .btn-login */
+}
 
 /* Untuk Titik Notifikasi di Sidebar */
-.sidebar-menu li a {
-  position: relative;
-}
 .notification-dot-indicator {
   width: 9px;
   height: 9px;
@@ -700,20 +745,15 @@ body.preload-no-transitions .main-content {
   border-radius: 50%;
   position: absolute;
   border: 1.5px solid var(--secondary-color); /* Warna background sidebar */
-  top: 8px;
-  right: 8px;
+  top: 8px; /* Default */
 }
 .sidebar:not(.collapsed) .sidebar-menu li a .notification-dot-indicator {
   top: 10px;
-  right: 10px; /* Lebih dekat ke tepi kanan link saat expanded */
-  left: auto;
-  transform: none;
+  right: 10px;
 }
 .sidebar.collapsed .sidebar-menu li a .notification-dot-indicator {
   top: 8px;
-  right: 15px; /* Dekat ikon bell di bar collapsed 70px */
-  left: auto;
-  transform: none;
+  right: 15px;
 }
 
 /* Animations */
@@ -739,21 +779,393 @@ body.preload-no-transitions .main-content {
 }
 
 /* FontAwesome Transitions */
-.fa {
+.fa,
+.fas {
+  /* Mencakup .fas juga */
   transition: transform 0.2s ease;
 }
 .btn-login:hover .fa,
+.btn-login:hover .fas,
 .btn-penilaian:hover .fa,
-.btn-kirim-penilaian:hover .fa {
+.btn-penilaian:hover .fas,
+.btn-kirim-penilaian:hover .fa,
+.btn-kirim-penilaian:hover .fas {
   transform: scale(1.1);
 }
-.sidebar-menu li a i,
-.logout-link i {
-  transition: transform 0.3s ease;
+
+/* Password Toggle Styling (Konsolidasi) */
+.input-group .password-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
 }
-.sidebar-menu li a:hover i,
-.logout-link:hover i {
-  transform: rotate(5deg) scale(1.1);
+.input-group .password-wrapper input[type="password"],
+.input-group .password-wrapper input[type="text"] {
+  /* Untuk saat password terlihat */
+  padding-right: 40px; /* Ruang untuk ikon mata */
+  width: 100%;
+  box-sizing: border-box; /* Pastikan padding tidak menambah lebar total */
+}
+.toggle-password {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  color: #757575;
+  z-index: 2; /* Agar di atas input field */
+}
+.toggle-password:hover {
+  color: var(--primary-color);
+}
+
+/* Admin Dashboard Specific Styles */
+.summary-grid {
+  /* Untuk Admin Dashboard statistik cards */
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 25px;
+  margin-bottom: 30px;
+}
+.summary-card-admin {
+  background-color: var(--white-color);
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.07);
+  display: flex;
+  align-items: center;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  text-decoration: none;
+  color: inherit;
+  border-left: 5px solid transparent;
+}
+.summary-card-admin:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+.summary-card-admin .icon {
+  font-size: 2.6em;
+  margin-right: 20px;
+  padding: 15px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 70px;
+  height: 70px;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+.summary-card-admin.users-card {
+  border-left-color: #3498db;
+}
+.summary-card-admin.users-card .icon {
+  color: #3498db;
+  background-color: rgba(52, 152, 219, 0.1);
+}
+.summary-card-admin.dosen-card {
+  border-left-color: #2ecc71;
+}
+.summary-card-admin.dosen-card .icon {
+  color: #2ecc71;
+  background-color: rgba(46, 204, 113, 0.1);
+}
+.summary-card-admin.mahasiswa-card {
+  border-left-color: #f39c12;
+}
+.summary-card-admin.mahasiswa-card .icon {
+  color: #f39c12;
+  background-color: rgba(243, 156, 18, 0.1);
+}
+.summary-card-admin.jadwal-card {
+  border-left-color: #9b59b6;
+}
+.summary-card-admin.jadwal-card .icon {
+  color: #9b59b6;
+  background-color: rgba(155, 89, 182, 0.1);
+}
+.summary-card-admin.admin-role-card {
+  border-left-color: #e74c3c;
+}
+.summary-card-admin.admin-role-card .icon {
+  color: #e74c3c;
+  background-color: rgba(231, 76, 60, 0.1);
+}
+.summary-card-admin.kajur-role-card {
+  border-left-color: #1abc9c;
+}
+.summary-card-admin.kajur-role-card .icon {
+  color: #1abc9c;
+  background-color: rgba(26, 188, 156, 0.1);
+}
+.summary-card-admin.matakuliah-card {
+  border-left-color: #34495e;
+}
+.summary-card-admin.matakuliah-card .icon {
+  color: #34495e;
+  background-color: rgba(52, 73, 94, 0.1);
+}
+.summary-card-admin.evaluasi-card {
+  border-left-color: #e67e22;
+}
+.summary-card-admin.evaluasi-card .icon {
+  color: #e67e22;
+  background-color: rgba(230, 126, 34, 0.1);
+}
+.summary-card-admin .info h4 {
+  margin: 0 0 5px 0;
+  font-size: 1em;
+  color: var(--text-color);
+  font-weight: 500;
+}
+.summary-card-admin .info p {
+  margin: 0;
+  font-size: 2em;
+  font-weight: 700;
+  color: var(--primary-color);
+}
+
+.quick-actions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 20px;
+  margin-top: 20px;
+}
+.action-card {
+  /* Quick Actions di Admin Dashboard */
+  background-color: var(--white-color);
+  color: var(--text-color);
+  padding: 25px 20px;
+  border-radius: 10px;
+  text-align: center;
+  text-decoration: none;
+  transition: background-color 0.3s ease, transform 0.2s ease,
+    box-shadow 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 130px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  border: 1px solid var(--tertiary-color); /* Menggunakan border dari preferensi user */
+}
+.action-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+  border-color: var(--primary-color);
+}
+.action-card i {
+  font-size: 2.2em;
+  margin-bottom: 12px;
+  color: var(--primary-color);
+}
+.action-card span {
+  font-weight: 500;
+  font-size: 0.95em;
+}
+
+.info-section {
+  /* Untuk Admin Dashboard */
+  margin-bottom: 30px;
+}
+.info-section .content-card {
+  background-color: var(--white-color);
+}
+.info-section h2 {
+  color: var(--text-color);
+}
+.info-section p {
+  font-size: 1.05em;
+}
+.info-section strong {
+  color: var(--primary-color);
+}
+
+/* Styling Form Edit User (admin_edit_user.php) */
+.password-display-box {
+  background-color: #fff3cd;
+  border: 1px solid #ffeeba;
+  color: #856404;
+  padding: 15px;
+  margin: 15px 0;
+  border-radius: 5px;
+  text-align: center;
+}
+.password-display-box strong {
+  font-size: 1.2em;
+  word-break: break-all;
+}
+.password-display-box p {
+  margin-top: 5px;
+  font-size: 0.9em;
+}
+#dosen_specific_fields,
+#mahasiswa_specific_fields,
+#kajur_specific_fields {
+  border-left: 3px solid var(--secondary-color);
+  padding-left: 15px;
+  margin-top: 15px;
+  margin-bottom: 15px;
+}
+#dosen_specific_fields h4,
+#mahasiswa_specific_fields h4,
+#kajur_specific_fields h4 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  font-size: 1.1em;
+  color: var(--primary-color);
+}
+
+/* KONSOLIDASI: Filter Form Styling (Umum untuk semua halaman manage Admin & beberapa Kajur/Dosen) */
+.page-header-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+.page-header-actions h2 {
+  margin-bottom: 10px;
+  margin-right: auto; /* Dorong tombol ke kanan */
+}
+.page-header-actions .btn-login {
+  /* Tombol Tambah di header */
+  margin-bottom: 10px; /* Jika wrap */
+  margin-left: 10px; /* Jarak dari judul jika tidak wrap */
+}
+
+.filter-form {
+  display: flex;
+  gap: 15px;
+  align-items: flex-end; /* Sejajarkan item ke bawah */
+  flex-wrap: wrap;
+  padding: 15px;
+  background-color: var(--background-color);
+  border-radius: 8px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+.filter-form .input-group {
+  margin-bottom: 0; /* Hapus margin bawah default dari .input-group */
+  flex: 1 1 180px; /* Default flex-basis, bisa di-override jika perlu */
+}
+/* Override flex-basis untuk filter form tertentu jika diperlukan */
+.filter-form.admin-manage-users .input-group {
+  flex: 1 1 200px;
+}
+.filter-form.admin-manage-dosen .input-group {
+  flex: 1 1 130px;
+}
+.filter-form.admin-manage-mahasiswa .input-group {
+  flex: 1 1 150px;
+}
+/* .filter-form.admin-manage-jadwal .input-group { flex: 1 1 180px; } -> ini default */
+.filter-form.kajur-dashboard .input-group {
+  flex: 1 1 180px;
+}
+.filter-form.kajur-dashboard .input-group.periode,
+.filter-form.dosen-dashboard .input-group, /* Asumsi filter dosen mirip kajur periode */
+.filter-form.kajur-lihat-evaluasi .input-group {
+  /* Asumsi filter detail mirip kajur periode */
+  flex: 1 1 250px;
+}
+
+.filter-form .input-group label {
+  font-size: 0.85em;
+  margin-bottom: 4px;
+  color: var(--text-color);
+  opacity: 0.9;
+  display: block; /* Pastikan label block */
+}
+.filter-form input[type="text"],
+.filter-form select {
+  width: 100%;
+  box-sizing: border-box;
+  height: 40px;
+  padding: 8px 12px;
+  font-size: 0.9em;
+  border-radius: 6px;
+  border: 1px solid var(--input-border-color, #ddd); /* Default border jika variabel tidak ada */
+}
+.filter-form button,
+.filter-form a.btn-filter-action {
+  height: 40px;
+  padding: 0 18px;
+  font-size: 0.9em;
+  margin-bottom: 0; /* Untuk alignment jika wrap */
+  border-radius: 6px;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  border: none;
+  cursor: pointer;
+}
+.filter-form button {
+  /* Tombol filter utama */
+  background-color: var(--primary-color);
+  color: var(--white-color);
+}
+.filter-form button:hover {
+  background-color: var(--secondary-color);
+}
+.filter-form a.btn-reset-filter {
+  background-color: #6c757d;
+  color: white;
+}
+.filter-form a.btn-reset-filter:hover {
+  background-color: #5a6268;
+}
+.filter-form a.btn-filter-action i,
+.filter-form button i {
+  margin-right: 6px;
+}
+
+.btn-action-group a {
+  /* Tombol aksi di tabel (Edit, Hapus) */
+  margin-right: 5px;
+  display: inline-block; /* Untuk spacing yang benar */
+}
+.btn-action-group a:last-child {
+  margin-right: 0;
+}
+
+/* KONSOLIDASI: Pagination Styling */
+.pagination {
+  display: flex;
+  justify-content: center;
+  padding: 25px 0;
+  list-style: none;
+}
+.pagination li {
+  margin: 0 4px;
+}
+.pagination li a,
+.pagination li span {
+  display: inline-block;
+  padding: 8px 15px;
+  text-decoration: none;
+  border-radius: 6px;
+  transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+  font-size: 0.9em;
+  font-weight: 500;
+  border: 1px solid var(--tertiary-color);
+  background-color: var(--white-color);
+  color: var(--primary-color);
+}
+.pagination li a:hover,
+.pagination li.active span,
+.pagination li.active a {
+  background-color: var(--primary-color);
+  color: var(--white-color);
+  border-color: var(--primary-color);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+.pagination li.disabled span {
+  background-color: #f0f0f0;
+  color: #aaa;
+  border-color: #ddd;
+  cursor: default;
 }
 
 /* Responsive adjustments */
@@ -767,14 +1179,12 @@ body.preload-no-transitions .main-content {
   .info-box ul {
     padding-left: 15px;
   }
-  .sidebar.collapsed .sidebar-menu li a i,
-  .sidebar.collapsed .logout-link i {
-    width: 70px;
-  } /* Sesuaikan dengan lebar sidebar collapsed */
+  /* .sidebar.collapsed .sidebar-menu li a i, -> Sudah di handle di atas */
+  /* .sidebar.collapsed .logout-link i { width: 70px; } -> Sudah di handle di atas */
   .sidebar.collapsed .sidebar-menu li a,
   .sidebar.collapsed .logout-link {
     padding: 12px 0;
-  } /* Hanya padding vertikal saat ikon mengisi lebar */
+  }
 }
 
 @media (max-width: 480px) {
@@ -795,6 +1205,7 @@ body.preload-no-transitions .main-content {
     font-size: 1em;
     padding: 10px 15px;
   }
+
   .sidebar.collapsed {
     width: 60px;
   }
@@ -806,10 +1217,9 @@ body.preload-no-transitions .main-content {
   .sidebar.collapsed .logout-link i {
     width: 60px;
   }
-  .sidebar.collapsed .sidebar-menu li a,
-  .sidebar.collapsed .logout-link {
-    padding: 12px 0;
-  }
+  /* .sidebar.collapsed .sidebar-menu li a, -> Sudah di handle di atas */
+  /* .sidebar.collapsed .logout-link { padding: 12px 0; } -> Sudah di handle di atas */
+
   .sidebar:not(.collapsed) .sidebar-header h3 {
     font-size: 1.3em;
   }
@@ -817,6 +1227,7 @@ body.preload-no-transitions .main-content {
   .sidebar:not(.collapsed) .logout-link .menu-text {
     font-size: 1em;
   }
+
   .penilaian-container {
     max-width: 100%;
     padding: 15px;
@@ -831,44 +1242,9 @@ body.preload-no-transitions .main-content {
   .info-box h4 {
     font-size: 1.1em;
   }
+
   .sidebar.collapsed .sidebar-menu li a .notification-dot-indicator {
     right: 10px;
-    top: 8px; /* Posisi dot notif di mobile */
+    top: 8px;
   }
-}
-
-/* --- Penilaian Dosen internal styles moved from penilaian_dosen.php --- */
-.error-msg {
-  color: red;
-  margin-bottom: 15px;
-  background-color: #ffebee;
-  border: 1px solid #ef9a9a;
-  padding: 10px;
-  border-radius: 4px;
-  text-align: center;
-}
-.input-group .password-wrapper {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.input-group .password-wrapper input[type="password"],
-.input-group .password-wrapper input[type="text"] {
-  padding-right: 40px;
-  width: 100%;
-}
-
-.toggle-password {
-  position: absolute;
-  right: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  cursor: pointer;
-  color: #757575;
-  z-index: 2;
-}
-
-.toggle-password:hover {
-  color: var(--primary-color);
 }

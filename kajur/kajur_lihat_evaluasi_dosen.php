@@ -240,62 +240,6 @@ $current_page = basename($_SERVER['PHP_SELF']); //
             }
         });
     </script>
-    <style>
-        .filter-form {
-            display: flex;
-            gap: 15px;
-            align-items: flex-end;
-            flex-wrap: wrap;
-            padding: 15px;
-            background-color: var(--background-color);
-            border-radius: 8px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-        }
-
-        .filter-form .input-group {
-            margin-bottom: 0;
-            flex: 1 1 250px;
-        }
-
-        .filter-form .input-group label {
-            font-size: 0.85em;
-            margin-bottom: 4px;
-            color: var(--text-color);
-            opacity: 0.9;
-            display: block;
-        }
-
-        .filter-form select,
-        .filter-form button {
-            height: 40px;
-            padding: 8px 12px;
-            font-size: 0.9em;
-            border-radius: 6px;
-        }
-
-        .filter-form select {
-            border: 1px solid var(--tertiary-color);
-            width: 100%;
-            box-sizing: border-box;
-        }
-
-        .filter-form button {
-            border: none;
-            cursor: pointer;
-            background-color: var(--primary-color);
-            color: var(--white-color);
-            transition: background-color 0.3s ease;
-        }
-
-        .filter-form button:hover {
-            background-color: var(--secondary-color);
-        }
-
-        .filter-form button i {
-            margin-right: 6px;
-        }
-    </style>
 </head>
 
 <body>
