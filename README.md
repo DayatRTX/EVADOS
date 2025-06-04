@@ -1,6 +1,6 @@
-# Evados - Sistem Evaluasi Dosen Online
+# EVADOS - Sistem Evaluasi Kinerja Dosen
 
-Evados adalah aplikasi web berbasis PHP yang dirancang untuk memfasilitasi proses evaluasi dosen oleh mahasiswa. Sistem ini juga menyediakan dasbor dan fungsionalitas manajemen untuk berbagai peran pengguna seperti Dosen, Ketua Jurusan (Kajur), dan Administrator.
+EVADOS adalah aplikasi web berbasis PHP yang dirancang untuk memfasilitasi proses evaluasi dosen oleh mahasiswa. Sistem ini juga menyediakan dasbor dan fungsionalitas manajemen untuk berbagai peran pengguna seperti Dosen, Ketua Jurusan (Kajur), dan Administrator.
 
 ## Daftar Isi
 
