@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jun 03, 2025 at 01:42 AM
+-- Generation Time: Jun 04, 2025 at 06:30 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -296,7 +296,7 @@ CREATE TABLE `system_settings` (
 --
 
 INSERT INTO `system_settings` (`setting_key`, `setting_value`, `description`, `last_updated`) VALUES
-('batas_akhir_penilaian', '2025-09-20', 'Batas akhir periode penilaian (format YYYY-MM-DD).', '2025-05-26 13:33:52'),
+('batas_akhir_penilaian', '2100-12-31', 'Batas akhir periode penilaian (format YYYY-MM-DD).', '2025-06-03 06:54:12'),
 ('semester_aktif', 'Genap 2024/2025', 'Semester aktif yang ditampilkan di sistem evaluasi.', '2025-05-27 04:36:59');
 
 --
