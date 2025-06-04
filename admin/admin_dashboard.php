@@ -105,7 +105,8 @@ if ($result_settings_info) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Admin - Evados</title>
     <link rel="icon" href="../logo.png" type="image/png" />
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="../css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script>
@@ -138,13 +139,13 @@ if ($result_settings_info) {
                             class="<?php echo (strpos($current_page_php, 'admin_manage_mahasiswa.php') !== false || strpos($current_page_php, 'admin_edit_mahasiswa.php') !== false) ? 'active' : ''; ?>"><i
                                 class="fas fa-user-graduate"></i> <span class="menu-text">Mahasiswa</span></a>
                     </li>
+                    <li><a href="admin_manage_matakuliah.php"
+                            class="<?php echo (strpos($current_page_php, 'admin_manage_matakuliah.php') !== false || strpos($current_page_php, 'admin_edit_matakuliah.php') !== false) ? 'active' : ''; ?>"><i
+                                class="fas fa-book"></i> <span class="menu-text">Mata Kuliah</span></a></li>
                     <li><a href="admin_manage_jadwal.php"
                             class="<?php echo (strpos($current_page_php, 'admin_manage_jadwal.php') !== false || strpos($current_page_php, 'admin_edit_jadwal.php') !== false) ? 'active' : ''; ?>"><i
                                 class="fas fa-calendar-alt"></i> <span class="menu-text">Jadwal</span></a>
                     </li>
-                    <li><a href="admin_manage_matakuliah.php"
-                            class="<?php echo (strpos($current_page_php, 'admin_manage_matakuliah.php') !== false || strpos($current_page_php, 'admin_edit_matakuliah.php') !== false) ? 'active' : ''; ?>"><i
-                                class="fas fa-book"></i> <span class="menu-text">Matakuliah</span></a></li>
                     <li><a href="admin_settings.php"
                             class="<?php echo ($current_page_php == 'admin_settings.php') ? 'active' : ''; ?>"><i
                                 class="fas fa-cog"></i> <span class="menu-text">Pengaturan Sistem</span></a></li>
@@ -208,19 +209,19 @@ if ($result_settings_info) {
                         <p><?php echo $total_admin; ?></p>
                     </div>
                 </a>
-                <a href="admin_manage_jadwal.php" class="summary-card-admin jadwal-card">
-                    <div class="icon jadwal"><i class="fas fa-calendar-alt"></i></div>
-                    <div class="info">
-                        <h4>Total Jadwal</h4>
-                        <p><?php echo $total_jadwal; ?></p>
-                    </div>
-                </a>
                 <a href="admin_manage_matakuliah.php" class="summary-card-admin matakuliah-card">
                     <div class="icon matakuliah"><i class="fas fa-book-open"></i></div>
                     <div class="info">
-                        <h4>Total Matakuliah</h4>
+                        <h4>Total Mata Kuliah</h4>
                         <p><?php echo $total_matakuliah; ?></p>
                     </div>
+                    <a href="admin_manage_jadwal.php" class="summary-card-admin jadwal-card">
+                        <div class="icon jadwal"><i class="fas fa-calendar-alt"></i></div>
+                        <div class="info">
+                            <h4>Total Jadwal</h4>
+                            <p><?php echo $total_jadwal; ?></p>
+                        </div>
+                    </a>
                 </a>
                 <div class="summary-card-admin evaluasi-card">
                     <div class="icon evaluasi"><i class="fas fa-chart-bar"></i></div>
@@ -243,11 +244,11 @@ if ($result_settings_info) {
                     <a href="admin_edit_mahasiswa.php?action=add" class="action-card">
                         <i class="fas fa-id-card-alt"></i><span>Tambah Mahasiswa</span>
                     </a>
+                    <a href="admin_edit_matakuliah.php?action=add" class="action-card">
+                        <i class="fas fa-folder-plus"></i><span>Tambah Mata Kuliah</span>
+                    </a>
                     <a href="admin_edit_jadwal.php?action=add" class="action-card">
                         <i class="fas fa-calendar-plus"></i><span>Tambah Jadwal</span>
-                    </a>
-                    <a href="admin_edit_matakuliah.php?action=add" class="action-card">
-                        <i class="fas fa-folder-plus"></i><span>Tambah Matakuliah</span>
                     </a>
                     <a href="admin_settings.php" class="action-card">
                         <i class="fas fa-cogs"></i><span>Pengaturan Sistem</span>

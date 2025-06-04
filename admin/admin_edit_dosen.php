@@ -232,7 +232,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && (isset($_POST['add_dosen']) || isset
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars($page_title); ?> - Evados</title>
     <link rel="icon" href="../logo.png" type="image/png" />
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="../css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script>
@@ -301,13 +302,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && (isset($_POST['add_dosen']) || isset
                             class="<?php echo (strpos($current_page_php, 'admin_manage_mahasiswa.php') !== false || strpos($current_page_php, 'admin_edit_mahasiswa.php') !== false) ? 'active' : ''; ?>"><i
                                 class="fas fa-user-graduate"></i> <span class="menu-text">Mahasiswa</span></a>
                     </li>
+                    <li><a href="admin_manage_matakuliah.php"
+                            class="<?php echo (strpos($current_page_php, 'admin_manage_matakuliah.php') !== false || strpos($current_page_php, 'admin_edit_matakuliah.php') !== false) ? 'active' : ''; ?>"><i
+                                class="fas fa-book"></i> <span class="menu-text">Mata Kuliah</span></a></li>
                     <li><a href="admin_manage_jadwal.php"
                             class="<?php echo (strpos($current_page_php, 'admin_manage_jadwal.php') !== false || strpos($current_page_php, 'admin_edit_jadwal.php') !== false) ? 'active' : ''; ?>"><i
                                 class="fas fa-calendar-alt"></i> <span class="menu-text">Jadwal</span></a>
                     </li>
-                    <li><a href="admin_manage_matakuliah.php"
-                            class="<?php echo (strpos($current_page_php, 'admin_manage_matakuliah.php') !== false || strpos($current_page_php, 'admin_edit_matakuliah.php') !== false) ? 'active' : ''; ?>"><i
-                                class="fas fa-book"></i> <span class="menu-text">Matakuliah</span></a></li>
                     <li><a href="admin_settings.php"
                             class="<?php echo ($current_page_php == 'admin_settings.php') ? 'active' : ''; ?>"><i
                                 class="fas fa-cog"></i> <span class="menu-text">Pengaturan Sistem</span></a></li>
