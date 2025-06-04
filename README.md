@@ -106,7 +106,7 @@ File konfigurasi utama untuk database adalah `config/db.php`. Pastikan pengatura
 
 ### Kredensial Default (Contoh dari `evados.sql`)
 
-Beberapa akun contoh telah disertakan dalam file `evados.sql`. Umumnya, password untuk akun contoh adalah `password123` (hash `$2y$10$dvV0WcJn8e0dJLtl9nn/pue2gzTTJdXDpQcdWKlQ/VteMGEfdYW8i`).
+Beberapa akun contoh telah disertakan dalam file `evados.sql`. Umumnya, password untuk akun contoh adalah `123456` (hash `$2y$10$dvV0WcJn8e0dJLtl9nn/pue2gzTTJdXDpQcdWKlQ/VteMGEfdYW8i`).
 
 * **Mahasiswa (Ketua Kelas 4MIC):**
     * Username: `k4mic2023`
