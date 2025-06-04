@@ -110,19 +110,19 @@ Beberapa akun contoh telah disertakan dalam file `evados.sql`. Umumnya, password
 
 * **Mahasiswa (Ketua Kelas 4MIC):**
     * Username: `k4mic2023`
-    * Password: `password123`
+    * Password: `123456`
 * **Mahasiswa (Ketua Kelas 4MID):**
     * Username: `k4mid2023`
-    * Password: `password123`
+    * Password: `123456`
 * **Dosen (Contoh):**
     * Email: `nurlaili@contoh.com`
-    * Password: `password123`
+    * Password: `123456`
 * **Kajur (Contoh):**
     * Email: `kajur.mi@example.com`
-    * Password: `password123`
+    * Password: `123456`
 * **Admin:**
     * Email: `admin@evados.com`
-    * Password: `password123`
+    * Password: `123456`
 
 ## Struktur Database
 
