@@ -164,7 +164,7 @@ $current_page_php_mhs = basename($_SERVER['PHP_SELF']);
                 <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle Sidebar">
                     <i class="fas fa-bars"></i> </button>
                 <div class="sidebar-header">
-                    <h3 class="logo-text">Evados</h3>
+                    <h3 class="logo-text">EVADOS</h3>
                 </div>
             </div>
             <nav class="sidebar-menu">
