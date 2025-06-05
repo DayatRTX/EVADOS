@@ -159,7 +159,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <body>
   <div class="login-container">
     <div class="login-box">
-      <h2><i class="fas fa-sign-in-alt"></i> Login Sistem Evados</h2>
+      <h2><i class="fas fa-sign-in-alt"></i> E V A D O S</h2>
       <?php if (!empty($error_message)): ?>
         <p class="error-msg"><?php echo htmlspecialchars($error_message); ?></p>
       <?php endif; ?>

@@ -147,7 +147,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && (isset($_POST['add_matakuliah']) || 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo htmlspecialchars($page_title); ?> - Evados</title>
+    <title><?php echo htmlspecialchars($page_title); ?> - EVADOS</title>
     <link rel="icon" href="../logo.png" type="image/png" />
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet">
@@ -165,7 +165,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && (isset($_POST['add_matakuliah']) || 
                 <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle Sidebar"><i
                         class="fas fa-bars"></i></button>
                 <div class="sidebar-header">
-                    <h3 class="logo-text">Evados</h3>
+                    <h3 class="logo-text">EVADOS</h3>
                 </div>
             </div>
             <nav class="sidebar-menu">

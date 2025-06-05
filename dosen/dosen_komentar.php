@@ -96,7 +96,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Komentar Mahasiswa - Evados</title>
+    <title>Komentar Mahasiswa - EVADOS</title>
     <link rel="icon" href="../logo.png" type="image/png" />
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../css/style.css">
@@ -132,7 +132,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
                     <i class="fas fa-bars"></i>
                 </button>
                 <div class="sidebar-header">
-                    <h3 class="logo-text">Evados</h3>
+                    <h3 class="logo-text">EVADOS</h3>
                 </div>
             </div>
             <nav class="sidebar-menu">

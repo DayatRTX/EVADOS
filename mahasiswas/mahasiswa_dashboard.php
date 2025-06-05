@@ -146,7 +146,7 @@ $current_page_php_mhs = basename($_SERVER['PHP_SELF']);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Mahasiswa - Evados</title>
+    <title>Dashboard Mahasiswa - EVADOS</title>
     <link rel="icon" href="../logo.png" type="image/png" />
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet">
