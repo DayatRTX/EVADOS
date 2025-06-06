@@ -142,12 +142,12 @@ Berikut adalah tabel utama dalam database `evados`:
 
 Proyek ini dikembangkan oleh:
 
-1.  Adellia Nurain - `062340833108`
-2.  Ahmad Farhan Hidayatullah - `062340833109`
-3.  Andhika Pratama - `062340833112`
-4.  M. Rayshad Naufal Putra - `062340833123`
-5.  Rika Anggraini - `062340833130`
-6.  Sherli Gusvita Risbar - `062340833131`
+1.  Adellia Nurain
+2.  Ahmad Farhan Hidayatullah
+3.  Andhika Pratama
+4.  M. Rayshad Naufal Putra
+5.  Rika Anggraini
+6.  Sherli Gusvita Risbar
 
 ---
 
