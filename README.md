@@ -6,7 +6,6 @@ EVADOS adalah aplikasi web berbasis PHP yang dirancang untuk memfasilitasi prose
 
 - [Fitur Utama](#fitur-utama)
 - [Peran Pengguna](#peran-pengguna)
-- [Struktur Direktori](#struktur-direktori)
 - [Persyaratan Sistem](#persyaratan-sistem)
 - [Instalasi](#instalasi)
   - [Langkah-langkah Setup](#langkah-langkah-setup)
